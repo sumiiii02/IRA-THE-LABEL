@@ -17,7 +17,7 @@ import ProductDetails from "./components/ProductDetails.jsx";
 import Checkout from "./components/Checkout.jsx";
 import "./styles.css";
 
-const API_URL = "https://ira-the-label.onrender.com";
+const API_URL = "https://ira-the-label.onrender.com/api/products";
 
 const categories = [
   "All",
@@ -196,11 +196,9 @@ function App() {
   const loadProducts = async () => {
     try {
       setLoading(true);
-
-      const response = await fetch(API_URL, {
-        cache: "no-store",
-      });
-
+const response = await fetch(`${API_URL}/products`, {
+  cache: "no-store",
+});
       if (!response.ok) {
         throw new Error(
           `Failed to load products (${response.status})`
