@@ -196,7 +196,7 @@ function App() {
   const loadProducts = async () => {
     try {
       setLoading(true);
-const response = await fetch(`${API_URL}/products`, {
+const response = await fetch(API_URL, {
   cache: "no-store",
 });
       if (!response.ok) {
