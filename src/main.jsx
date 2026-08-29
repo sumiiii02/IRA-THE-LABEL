@@ -17,7 +17,7 @@ import ProductDetails from "./components/ProductDetails.jsx";
 import Checkout from "./components/Checkout.jsx";
 import "./styles.css";
 
-const API_URL = "http://localhost:5000/api/products";
+const API_URL = "https://ira-the-label.onrender.com";
 
 const categories = [
   "All",
@@ -87,7 +87,7 @@ function getProductImage(product) {
   }
 
   // Local backend image path
-  return `http://localhost:5000${image}`;
+  return `https://ira-the-label.onrender.com${image}`;
 }
 
 function getDiscountedPrice(product) {

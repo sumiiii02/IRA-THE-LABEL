@@ -15,7 +15,7 @@ import {
 // API
 // ======================================================
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = "https://ira-the-label.onrender.com";
 
 // ======================================================
 // HELPERS
@@ -68,7 +68,7 @@ const getProductImage = (product) => {
   }
 
   // Backend image path
-  return `http://localhost:5000${image}`;
+  return `https://ira-the-label.onrender.com${image}`;
 };
 
 const getProductPrice = (product) => {

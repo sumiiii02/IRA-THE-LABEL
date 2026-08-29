@@ -51,10 +51,10 @@ export default function ProductDetails({
     }
 
     if (image.startsWith("/")) {
-      return `http://localhost:5000${image}`;
+      return `https://ira-the-label.onrender.com${image}`;
     }
 
-    return `http://localhost:5000/${image}`;
+    return `https://ira-the-label.onrender.com${image}`;
   };
 
   // ==========================================

@@ -758,7 +758,7 @@ export default function AdminPanel({ onBack }) {
       return image;
     }
 
-    return `http://localhost:5000${image}`;
+    return `https://ira-the-label.onrender.com${image}`;
   };
 
   const getImage = (product) => {
