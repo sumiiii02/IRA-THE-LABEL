@@ -765,7 +765,7 @@ function Home({
 
         <div className="hero-art">
           <img
-            src="/logo.png"
+            src="/IRA-THE-LABEL/logo.png"
             alt="IRA THE LABEL"
             className="hero-logo"
           />

@@ -54,7 +54,7 @@ export default function ProductDetails({
       return `https://ira-the-label.onrender.com${image}`;
     }
 
-    return `https://ira-the-label.onrender.com${image}`;
+    return `${image}`;
   };
 
   // ==========================================
