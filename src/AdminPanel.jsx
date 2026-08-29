@@ -30,10 +30,10 @@ import {
 import "./styles.css";
 
 const PRODUCTS_API_URL =
-  "http://localhost:5000/api/products";
+  "https://ira-the-label.onrender.com";
 
 const ORDERS_API_URL =
-  "http://localhost:5000/api/orders";
+  "https://ira-the-label.onrender.com";
 
 const emptyProduct = {
   name: "",
