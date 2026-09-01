@@ -91,6 +91,15 @@ const Product = mongoose.model("Product", productSchema);
 
 const orderSchema = new mongoose.Schema(
   {
+    // Unique browser/customer identifier.
+    // Optional for now so existing orders remain valid.
+    customerId: {
+      type: String,
+      default: "",
+      trim: true,
+      index: true,
+    },
+
     customer: {
       firstName: {
         type: String,
@@ -448,6 +457,7 @@ app.delete("/api/products/:id", async (req, res) => {
 app.post("/api/orders", async (req, res) => {
   try {
     const {
+      customerId,
       customer,
       deliveryAddress,
       items,
@@ -506,6 +516,7 @@ app.post("/api/orders", async (req, res) => {
     }
 
     const order = await Order.create({
+      customerId: customerId || "",
       customer,
       deliveryAddress,
       items,
@@ -515,6 +526,7 @@ app.post("/api/orders", async (req, res) => {
     });
 
     console.log("New order created:", order._id);
+    console.log("Customer ID:", order.customerId);
 
     res.status(201).json({
       success: true,
@@ -532,7 +544,10 @@ app.post("/api/orders", async (req, res) => {
   }
 });
 
+// ========================================
 // GET ALL ORDERS
+// ADMIN USE
+// ========================================
 
 app.get("/api/orders", async (req, res) => {
   try {
@@ -550,7 +565,47 @@ app.get("/api/orders", async (req, res) => {
   }
 });
 
+// ========================================
+// GET ORDERS FOR ONE CUSTOMER
+// ========================================
+
+app.get(
+  "/api/orders/customer/:customerId",
+  async (req, res) => {
+    try {
+      const { customerId } = req.params;
+
+      if (!customerId) {
+        return res.status(400).json({
+          success: false,
+          message: "Customer ID is required",
+        });
+      }
+
+      const orders = await Order.find({
+        customerId: customerId,
+      }).sort({
+        createdAt: -1,
+      });
+
+      res.status(200).json(orders);
+    } catch (error) {
+      console.error(
+        "GET CUSTOMER ORDERS ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        message: "Could not load customer orders",
+      });
+    }
+  }
+);
+
+// ========================================
 // GET SINGLE ORDER
+// ========================================
 
 app.get("/api/orders/:id", async (req, res) => {
   try {
@@ -657,8 +712,6 @@ const updateOrderStatusHandler = async (req, res) => {
 // STATUS UPDATE ROUTES
 // ========================================
 
-// Supports your current admin dashboard route
-
 app.patch(
   "/api/orders/:id/status",
   updateOrderStatusHandler
@@ -668,8 +721,6 @@ app.put(
   "/api/orders/:id/status",
   updateOrderStatusHandler
 );
-
-// Extra compatible routes
 
 app.patch(
   "/api/orders/:id",
