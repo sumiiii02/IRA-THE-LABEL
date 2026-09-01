@@ -5,9 +5,9 @@ import Product from "../models/Product.js";
 
 const router = express.Router();
 
-// ==============================
+// ======================================================
 // MULTER IMAGE UPLOAD
-// ==============================
+// ======================================================
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -37,9 +37,65 @@ const upload = multer({
   },
 });
 
-// ==============================
+// ======================================================
+// PAYMENT METHODS HELPER
+// ======================================================
+
+const PAYMENT_METHODS = ["COD", "UPI", "CARD"];
+
+const parsePaymentMethods = (value) => {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  // Already an array
+  if (Array.isArray(value)) {
+    const valid = value.filter((method) =>
+      PAYMENT_METHODS.includes(method)
+    );
+
+    return valid.length ? [...new Set(valid)] : ["COD"];
+  }
+
+  // String coming from JSON or FormData
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+
+      if (Array.isArray(parsed)) {
+        const valid = parsed.filter((method) =>
+          PAYMENT_METHODS.includes(method)
+        );
+
+        return valid.length
+          ? [...new Set(valid)]
+          : ["COD"];
+      }
+    } catch (error) {
+      // Not JSON, continue below
+    }
+
+    // Support comma-separated values:
+    // "COD,UPI,CARD"
+
+    const valid = value
+      .split(",")
+      .map((method) => method.trim())
+      .filter((method) =>
+        PAYMENT_METHODS.includes(method)
+      );
+
+    return valid.length
+      ? [...new Set(valid)]
+      : ["COD"];
+  }
+
+  return ["COD"];
+};
+
+// ======================================================
 // GET ALL PRODUCTS
-// ==============================
+// ======================================================
 
 router.get("/", async (req, res) => {
   try {
@@ -49,7 +105,10 @@ router.get("/", async (req, res) => {
 
     res.status(200).json(products);
   } catch (error) {
-    console.error("GET PRODUCTS ERROR:", error);
+    console.error(
+      "GET PRODUCTS ERROR:",
+      error
+    );
 
     res.status(500).json({
       message: "Could not load products",
@@ -57,15 +116,14 @@ router.get("/", async (req, res) => {
   }
 });
 
-// ==============================
+// ======================================================
 // GET SINGLE PRODUCT
-// ==============================
+// ======================================================
 
 router.get("/:id", async (req, res) => {
   try {
-    const product = await Product.findById(
-      req.params.id
-    );
+    const product =
+      await Product.findById(req.params.id);
 
     if (!product) {
       return res.status(404).json({
@@ -75,7 +133,10 @@ router.get("/:id", async (req, res) => {
 
     res.status(200).json(product);
   } catch (error) {
-    console.error("GET PRODUCT ERROR:", error);
+    console.error(
+      "GET PRODUCT ERROR:",
+      error
+    );
 
     res.status(500).json({
       message: "Could not load product",
@@ -83,9 +144,9 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ==============================
+// ======================================================
 // ADD PRODUCT
-// ==============================
+// ======================================================
 
 router.post(
   "/",
@@ -94,52 +155,123 @@ router.post(
     try {
       const images =
         req.files?.map(
-          (file) => `/uploads/${file.filename}`
+          (file) =>
+            `/uploads/${file.filename}`
         ) || [];
 
-      const product = await Product.create({
-        name: req.body.name,
-        description: req.body.description || "",
-        category: req.body.category || "",
-        price: Number(req.body.price),
-        discount: Number(req.body.discount || 0),
-        stock: Number(req.body.stock || 0),
+      const paymentMethods =
+        parsePaymentMethods(
+          req.body.paymentMethods
+        );
 
-        sizes: req.body.sizes
-          ? JSON.parse(req.body.sizes)
-          : [],
+      let sizes = [];
+      let colors = [];
 
-        colors: req.body.colors
-          ? JSON.parse(req.body.colors)
-          : [],
+      // ------------------------------
+      // SIZES
+      // ------------------------------
 
-        images,
-      });
+      if (req.body.sizes) {
+        try {
+          sizes = JSON.parse(
+            req.body.sizes
+          );
+        } catch (error) {
+          sizes = String(
+            req.body.sizes
+          )
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean);
+        }
+      }
+
+      // ------------------------------
+      // COLORS
+      // ------------------------------
+
+      if (req.body.colors) {
+        try {
+          colors = JSON.parse(
+            req.body.colors
+          );
+        } catch (error) {
+          colors = String(
+            req.body.colors
+          )
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean);
+        }
+      }
+
+      // ------------------------------
+      // CREATE PRODUCT
+      // ------------------------------
+
+      const product =
+        await Product.create({
+          name: req.body.name,
+
+          description:
+            req.body.description || "",
+
+          category:
+            req.body.category || "",
+
+          price:
+            Number(req.body.price),
+
+          discount:
+            Number(
+              req.body.discount || 0
+            ),
+
+          stock:
+            Number(
+              req.body.stock || 0
+            ),
+
+          sizes,
+
+          colors,
+
+          images,
+
+          // IMPORTANT
+          paymentMethods:
+            paymentMethods || ["COD"],
+        });
 
       res.status(201).json(product);
     } catch (error) {
-      console.error("ADD PRODUCT ERROR:", error);
+      console.error(
+        "ADD PRODUCT ERROR:",
+        error
+      );
 
       res.status(500).json({
         message:
-          error.message || "Could not add product",
+          error.message ||
+          "Could not add product",
       });
     }
   }
 );
 
-// ==============================
+// ======================================================
 // UPDATE PRODUCT
-// ==============================
+// ======================================================
 
 router.put(
   "/:id",
   upload.array("images", 5),
   async (req, res) => {
     try {
-      const product = await Product.findById(
-        req.params.id
-      );
+      const product =
+        await Product.findById(
+          req.params.id
+        );
 
       if (!product) {
         return res.status(404).json({
@@ -147,73 +279,159 @@ router.put(
         });
       }
 
+      // ==================================================
+      // NEW IMAGES
+      // ==================================================
+
       const newImages =
         req.files?.map(
-          (file) => `/uploads/${file.filename}`
+          (file) =>
+            `/uploads/${file.filename}`
         ) || [];
 
-      // Update only the fields that were sent
+      // ==================================================
+      // BASIC PRODUCT FIELDS
+      // ==================================================
 
-      if (req.body.name !== undefined) {
-        product.name = req.body.name;
+      if (
+        req.body.name !== undefined
+      ) {
+        product.name =
+          req.body.name;
       }
 
-      if (req.body.description !== undefined) {
+      if (
+        req.body.description !== undefined
+      ) {
         product.description =
           req.body.description;
       }
 
-      if (req.body.category !== undefined) {
+      if (
+        req.body.category !== undefined
+      ) {
         product.category =
           req.body.category;
       }
 
-      if (req.body.price !== undefined) {
-        product.price = Number(req.body.price);
+      if (
+        req.body.price !== undefined
+      ) {
+        product.price =
+          Number(req.body.price);
       }
 
-      if (req.body.discount !== undefined) {
-        product.discount = Number(
-          req.body.discount
-        );
+      if (
+        req.body.discount !== undefined
+      ) {
+        product.discount =
+          Number(
+            req.body.discount
+          );
       }
 
-      if (req.body.stock !== undefined) {
-        product.stock = Number(req.body.stock);
+      if (
+        req.body.stock !== undefined
+      ) {
+        product.stock =
+          Number(
+            req.body.stock
+          );
       }
 
-      if (req.body.sizes !== undefined) {
+      // ==================================================
+      // SIZES
+      // ==================================================
+
+      if (
+        req.body.sizes !== undefined
+      ) {
         try {
-          product.sizes = JSON.parse(
+          product.sizes =
+            JSON.parse(
+              req.body.sizes
+            );
+        } catch (error) {
+          product.sizes = String(
             req.body.sizes
-          );
-        } catch (error) {
-          product.sizes = req.body.sizes;
+          )
+            .split(",")
+            .map((item) =>
+              item.trim()
+            )
+            .filter(Boolean);
         }
       }
 
-      if (req.body.colors !== undefined) {
+      // ==================================================
+      // COLORS
+      // ==================================================
+
+      if (
+        req.body.colors !== undefined
+      ) {
         try {
-          product.colors = JSON.parse(
-            req.body.colors
-          );
+          product.colors =
+            JSON.parse(
+              req.body.colors
+            );
         } catch (error) {
-          product.colors = req.body.colors;
+          product.colors = String(
+            req.body.colors
+          )
+            .split(",")
+            .map((item) =>
+              item.trim()
+            )
+            .filter(Boolean);
         }
       }
 
-      // IMPORTANT:
-      // Keep existing images when no new images are uploaded
-      if (newImages.length > 0) {
-        product.images = newImages;
+      // ==================================================
+      // PAYMENT METHODS
+      // ==================================================
+
+      if (
+        req.body.paymentMethods !== undefined
+      ) {
+        const paymentMethods =
+          parsePaymentMethods(
+            req.body.paymentMethods
+          );
+
+        if (paymentMethods) {
+          product.paymentMethods =
+            paymentMethods;
+        }
       }
+
+      // ==================================================
+      // IMAGES
+      // ==================================================
+
+      // Only replace images if new
+      // images were actually uploaded.
+
+      if (newImages.length > 0) {
+        product.images =
+          newImages;
+      }
+
+      // ==================================================
+      // SAVE TO MONGODB
+      // ==================================================
 
       const updatedProduct =
         await product.save();
 
-      res.status(200).json(updatedProduct);
+      res.status(200).json(
+        updatedProduct
+      );
     } catch (error) {
-      console.error("UPDATE PRODUCT ERROR:", error);
+      console.error(
+        "UPDATE PRODUCT ERROR:",
+        error
+      );
 
       res.status(500).json({
         message:
@@ -224,37 +442,45 @@ router.put(
   }
 );
 
-// ==============================
+// ======================================================
 // DELETE PRODUCT
-// ==============================
+// ======================================================
 
-router.delete("/:id", async (req, res) => {
-  try {
-    const product =
-      await Product.findByIdAndDelete(
-        req.params.id
+router.delete(
+  "/:id",
+  async (req, res) => {
+    try {
+      const product =
+        await Product.findByIdAndDelete(
+          req.params.id
+        );
+
+      if (!product) {
+        return res.status(404).json({
+          message: "Product not found",
+        });
+      }
+
+      res.status(200).json({
+        message:
+          "Product deleted successfully",
+      });
+    } catch (error) {
+      console.error(
+        "DELETE PRODUCT ERROR:",
+        error
       );
 
-    if (!product) {
-      return res.status(404).json({
-        message: "Product not found",
+      res.status(500).json({
+        message:
+          "Could not delete product",
       });
     }
-
-    res.status(200).json({
-      message: "Product deleted successfully",
-    });
-  } catch (error) {
-    console.error("DELETE PRODUCT ERROR:", error);
-
-    res.status(500).json({
-      message: "Could not delete product",
-    });
   }
-});
+);
 
-// ==============================
+// ======================================================
 // EXPORT ROUTER
-// ==============================
+// ======================================================
 
 export default router;
