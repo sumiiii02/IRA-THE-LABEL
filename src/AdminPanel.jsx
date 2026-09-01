@@ -14,6 +14,8 @@ import {
   Phone,
   User,
   CreditCard,
+  Banknote,
+  Smartphone,
   CheckCircle2,
   XCircle,
   Loader2,
@@ -34,6 +36,8 @@ const PRODUCTS_API_URL =
 
 const ORDERS_API_URL =
   "https://ira-the-label.onrender.com/api/orders";
+const PAYMENT_METHODS = ["COD", "UPI", "CARD"];
+
 const emptyProduct = {
   name: "",
   description: "",
@@ -43,6 +47,31 @@ const emptyProduct = {
   stock: "",
   sizes: "",
   colors: "",
+  paymentMethods: ["COD"],
+};
+
+const normalizePaymentMethods = (methods) => {
+  let parsed = methods;
+
+  if (typeof methods === "string") {
+    try {
+      parsed = JSON.parse(methods);
+    } catch {
+      parsed = methods
+        .split(",")
+        .map((item) => item.trim());
+    }
+  }
+
+  const valid = Array.isArray(parsed)
+    ? parsed.filter((method) =>
+        PAYMENT_METHODS.includes(method)
+      )
+    : [];
+
+  return valid.length
+    ? [...new Set(valid)]
+    : ["COD"];
 };
 
 export default function AdminPanel({ onBack }) {
@@ -399,6 +428,8 @@ export default function AdminPanel({ onBack }) {
       colors: Array.isArray(product.colors)
         ? product.colors.join(", ")
         : product.colors || "",
+
+      paymentMethods: normalizePaymentMethods(product.paymentMethods),
     });
 
     const existingImages =
@@ -412,6 +443,43 @@ export default function AdminPanel({ onBack }) {
     setSelectedImages(existingImages);
     setImagePreviews(existingImages);
     setShowForm(true);
+  };
+
+  // =========================
+  // PAYMENT METHOD HELPERS
+  // =========================
+
+  const togglePaymentMethod = (method) => {
+    setForm((current) => {
+      const currentMethods =
+        Array.isArray(current.paymentMethods) &&
+        current.paymentMethods.length > 0
+          ? current.paymentMethods
+          : ["COD"];
+
+      const isSelected =
+        currentMethods.includes(method);
+
+      // Never allow all payment methods to be disabled.
+      if (isSelected && currentMethods.length === 1) {
+        showMessage(
+          "At least one payment method must remain selected.",
+          "error"
+        );
+        return current;
+      }
+
+      const nextMethods = isSelected
+        ? currentMethods.filter(
+            (item) => item !== method
+          )
+        : [...currentMethods, method];
+
+      return {
+        ...current,
+        paymentMethods: normalizePaymentMethods(nextMethods),
+      };
+    });
   };
 
   // =========================
@@ -472,13 +540,15 @@ export default function AdminPanel({ onBack }) {
         .map((item) => item.trim())
         .filter(Boolean),
 
+      paymentMethods: normalizePaymentMethods(form.paymentMethods),
+
       images: selectedImages,
     };
 
     try {
       const url = editingId
         ? `${PRODUCTS_API_URL}/${editingId}`
-        : `${PRODUCTS_API_URL}/add`;
+        : PRODUCTS_API_URL;
 
       const response = await fetch(url, {
         method: editingId
@@ -565,24 +635,13 @@ export default function AdminPanel({ onBack }) {
     }
   };
 
-  // =========================
-  // UPDATE ORDER STATUS
-  // =========================
+  // ======================================================
+  // DELETE ORDER
+  // ======================================================
 
-  const updateOrderStatus = async (
-    orderId,
-    newStatus
-  ) => {
-    const normalizedNewStatus =
-      normalizeStatus(newStatus);
-
-    const action =
-      normalizedNewStatus === "Accepted"
-        ? "accept"
-        : "reject";
-
+  const deleteOrder = async (orderId) => {
     const confirmed = window.confirm(
-      `Are you sure you want to ${action} this order?`
+      "Are you sure you want to permanently delete this order? This cannot be undone."
     );
 
     if (!confirmed) return;
@@ -590,25 +649,10 @@ export default function AdminPanel({ onBack }) {
     try {
       setUpdatingOrder(orderId);
 
-      console.log(
-        "Updating order:",
-        orderId,
-        normalizedNewStatus
-      );
-
       const response = await fetch(
-        `${ORDERS_API_URL}/${orderId}/status`,
+        `${ORDERS_API_URL}/${orderId}`,
         {
-          method: "PUT",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body: JSON.stringify({
-            orderStatus: normalizedNewStatus,
-          }),
+          method: "DELETE",
         }
       );
 
@@ -618,31 +662,196 @@ export default function AdminPanel({ onBack }) {
         data = await response.json();
       } catch (error) {
         console.error(
-          "Could not parse server response:",
+          "Could not parse delete response:",
           error
         );
       }
 
-      console.log(
-        "Order update response:",
-        data
-      );
-
       if (!response.ok) {
         throw new Error(
-          data.message ||
-            `Could not ${action} order`
+          data.message || "Could not delete order"
         );
       }
 
-      const backendOrder =
-        data.order ||
-        data.updatedOrder ||
-        data.data ||
-        {};
+      setOrders((currentOrders) =>
+        currentOrders.filter(
+          (order) =>
+            String(order._id) !== String(orderId)
+        )
+      );
 
-      const updatedOrder =
-        normalizeOrder({
+      setSelectedOrder((currentOrder) =>
+        currentOrder &&
+        String(currentOrder._id) === String(orderId)
+          ? null
+          : currentOrder
+      );
+
+      showMessage(
+        data.message || "Order deleted successfully!"
+      );
+
+      await loadOrders();
+    } catch (error) {
+      console.error("Delete order error:", error);
+
+      showMessage(
+        error.message || "Could not delete order.",
+        "error"
+      );
+    } finally {
+      setUpdatingOrder(null);
+    }
+  };
+
+  // ======================================================
+  // UPDATE ORDER STATUS / REJECT ORDER
+  // ======================================================
+
+  const updateOrderStatus = async (orderId, newStatus) => {
+    const normalizedNewStatus = normalizeStatus(newStatus);
+
+    // ====================================================
+    // REJECT ORDER = DELETE IT COMPLETELY
+    // ====================================================
+
+    if (normalizedNewStatus === "Rejected") {
+      const confirmed = window.confirm(
+        "Are you sure you want to reject this order? This will permanently delete the order."
+      );
+
+      if (!confirmed) return;
+
+      try {
+        setUpdatingOrder(orderId);
+
+        console.log("Deleting rejected order:", orderId);
+
+        const response = await fetch(
+          `${ORDERS_API_URL}/${orderId}`,
+          {
+            method: "DELETE",
+          }
+        );
+
+        let data = {};
+
+        try {
+          data = await response.json();
+        } catch (error) {
+          console.error(
+            "Could not parse delete response:",
+            error
+          );
+        }
+
+        console.log("Delete order response:", data);
+
+        if (!response.ok) {
+          throw new Error(
+            data.message || "Could not delete order"
+          );
+        }
+
+        // Remove order immediately from admin dashboard
+        setOrders((currentOrders) =>
+          currentOrders.filter(
+            (order) =>
+              String(order._id) !== String(orderId)
+          )
+        );
+
+        // Close the order details modal
+        setSelectedOrder(null);
+
+        showMessage(
+          "Order rejected and deleted successfully!"
+        );
+
+        // Refresh from database
+        await loadOrders();
+      } catch (error) {
+        console.error(
+          "Reject/delete order error:",
+          error
+        );
+
+        showMessage(
+          error.message ||
+            "Could not reject the order.",
+          "error"
+        );
+      } finally {
+        setUpdatingOrder(null);
+      }
+
+      return;
+    }
+
+    // ====================================================
+    // ACCEPT ORDER = ONLY UPDATE STATUS
+    // ====================================================
+
+    if (normalizedNewStatus === "Accepted") {
+      const confirmed = window.confirm(
+        "Are you sure you want to accept this order?"
+      );
+
+      if (!confirmed) return;
+
+      try {
+        setUpdatingOrder(orderId);
+
+        console.log(
+          "Accepting order:",
+          orderId
+        );
+
+        const response = await fetch(
+          `${ORDERS_API_URL}/${orderId}/status`,
+          {
+            method: "PUT",
+
+            headers: {
+              "Content-Type": "application/json",
+            },
+
+            body: JSON.stringify({
+              orderStatus: "Accepted",
+            }),
+          }
+        );
+
+        let data = {};
+
+        try {
+          data = await response.json();
+        } catch (error) {
+          console.error(
+            "Could not parse server response:",
+            error
+          );
+        }
+
+        console.log(
+          "Order update response:",
+          data
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            data.message ||
+              "Could not accept order"
+          );
+        }
+
+        const backendOrder =
+          data.order ||
+          data.updatedOrder ||
+          data.data ||
+          {};
+
+        const updatedOrder = normalizeOrder({
           ...backendOrder,
 
           _id:
@@ -651,40 +860,36 @@ export default function AdminPanel({ onBack }) {
 
           status:
             backendOrder.status ??
-            normalizedNewStatus,
+            "Accepted",
 
           orderStatus:
             backendOrder.orderStatus ??
-            normalizedNewStatus,
+            "Accepted",
         });
 
-      // UPDATE ORDER CARD IMMEDIATELY
-      setOrders((currentOrders) =>
-        currentOrders.map((order) => {
-          if (
-            String(order._id) !==
-            String(orderId)
-          ) {
-            return order;
-          }
+        // Update order card immediately
+        setOrders((currentOrders) =>
+          currentOrders.map((order) => {
+            if (
+              String(order._id) !==
+              String(orderId)
+            ) {
+              return order;
+            }
 
-          return normalizeOrder({
-            ...order,
-            ...updatedOrder,
+            return normalizeOrder({
+              ...order,
+              ...updatedOrder,
 
-            // Force new status
-            status:
-              normalizedNewStatus,
+              status: "Accepted",
 
-            orderStatus:
-              normalizedNewStatus,
-          });
-        })
-      );
+              orderStatus: "Accepted",
+            });
+          })
+        );
 
-      // UPDATE OPEN MODAL IMMEDIATELY
-      setSelectedOrder(
-        (currentOrder) => {
+        // Update open modal
+        setSelectedOrder((currentOrder) => {
           if (
             !currentOrder ||
             String(currentOrder._id) !==
@@ -697,48 +902,33 @@ export default function AdminPanel({ onBack }) {
             ...currentOrder,
             ...updatedOrder,
 
-            // Force new status
-            status:
-              normalizedNewStatus,
+            status: "Accepted",
 
-            orderStatus:
-              normalizedNewStatus,
+            orderStatus: "Accepted",
           });
-        }
-      );
+        });
 
-      if (
-        normalizedNewStatus ===
-        "Accepted"
-      ) {
         showMessage(
           data.message ||
             "Order accepted successfully!"
         );
-      } else {
-        showMessage(
-          data.message ||
-            "Order rejected successfully!"
+
+        // Refresh from database
+        await loadOrders();
+      } catch (error) {
+        console.error(
+          "Accept order error:",
+          error
         );
+
+        showMessage(
+          error.message ||
+            "Could not accept order.",
+          "error"
+        );
+      } finally {
+        setUpdatingOrder(null);
       }
-
-      // Refresh from database after save
-      setTimeout(() => {
-        loadOrders();
-      }, 1000);
-    } catch (error) {
-      console.error(
-        "Update order status error:",
-        error
-      );
-
-      showMessage(
-        error.message ||
-          `Could not ${action} order.`,
-        "error"
-      );
-    } finally {
-      setUpdatingOrder(null);
     }
   };
 
@@ -1341,18 +1531,65 @@ export default function AdminPanel({ onBack }) {
 
                       </div>
 
-                      <button
-                        className="view-order-button"
-                        type="button"
-                        onClick={() =>
-                          setSelectedOrder(
-                            normalizeOrder(order)
-                          )
-                        }
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "10px",
+                        }}
                       >
-                        View Details
-                        <ChevronRight size={17} />
-                      </button>
+                        <button
+                          className="view-order-button"
+                          type="button"
+                          onClick={() =>
+                            setSelectedOrder(
+                              normalizeOrder(order)
+                            )
+                          }
+                        >
+                          View Details
+                          <ChevronRight size={17} />
+                        </button>
+
+                        <button
+                          className="delete-order"
+                          type="button"
+                          title="Delete order"
+                          disabled={
+                            String(updatingOrder) ===
+                            String(order._id)
+                          }
+                          onClick={() =>
+                            deleteOrder(order._id)
+                          }
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "6px",
+                            padding: "10px 12px",
+                            border: "1px solid #d9c5c5",
+                            borderRadius: "8px",
+                            background: "transparent",
+                            cursor:
+                              String(updatingOrder) ===
+                              String(order._id)
+                                ? "not-allowed"
+                                : "pointer",
+                          }}
+                        >
+                          {String(updatingOrder) ===
+                          String(order._id) ? (
+                            <Loader2
+                              className="loading-spinner"
+                              size={16}
+                            />
+                          ) : (
+                            <Trash2 size={16} />
+                          )}
+                          Delete
+                        </button>
+                      </div>
 
                     </div>
 
@@ -2054,6 +2291,92 @@ export default function AdminPanel({ onBack }) {
                   />
 
                 </div>
+                <div className="form-field full-field">
+                  <div className="payment-method-heading">
+                    <div>
+                      <label>Payment Methods</label>
+                      <p className="payment-method-description">
+                        Choose how customers can pay for this product.
+                      </p>
+                    </div>
+
+                    <span className="payment-method-count">
+                      {form.paymentMethods?.length || 1} selected
+                    </span>
+                  </div>
+
+                  <div className="payment-method-options">
+                    {[
+                      {
+                        method: "COD",
+                        label: "Cash on Delivery",
+                        description: "Pay when the order arrives",
+                        Icon: Banknote,
+                      },
+                      {
+                        method: "UPI",
+                        label: "UPI / Online",
+                        description: "Fast digital payment",
+                        Icon: Smartphone,
+                      },
+                      {
+                        method: "CARD",
+                        label: "Card",
+                        description: "Credit or debit card",
+                        Icon: CreditCard,
+                      },
+                    ].map(
+                      ({
+                        method,
+                        label,
+                        description,
+                        Icon,
+                      }) => {
+                        const checked =
+                          Array.isArray(form.paymentMethods) &&
+                          form.paymentMethods.includes(method);
+
+                        return (
+                          <button
+                            key={method}
+                            type="button"
+                            className={`payment-method-option ${
+                              checked ? "selected" : ""
+                            }`}
+                            onClick={() =>
+                              togglePaymentMethod(method)
+                            }
+                            aria-pressed={checked}
+                          >
+                            <span className="payment-method-icon">
+                              <Icon size={20} strokeWidth={1.8} />
+                            </span>
+
+                            <span className="payment-method-copy">
+                              <strong>{label}</strong>
+                              <small>{description}</small>
+                            </span>
+
+                            <span
+                              className={`payment-method-check ${
+                                checked ? "checked" : ""
+                              }`}
+                              aria-hidden="true"
+                            >
+                              {checked && <CheckCircle2 size={19} />}
+                            </span>
+                          </button>
+                        );
+                      }
+                    )}
+                  </div>
+
+                  <p className="payment-method-hint">
+                    Select at least one payment method. Changes are saved
+                    with the product.
+                  </p>
+                </div>
+
 
                 <div className="form-field full-field">
 

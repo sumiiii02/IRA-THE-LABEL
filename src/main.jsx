@@ -15,9 +15,11 @@ import {
 import AdminPanel from "./AdminPanel.jsx";
 import ProductDetails from "./components/ProductDetails.jsx";
 import Checkout from "./components/Checkout.jsx";
+import MyOrders from "./components/MyOrders.jsx";
 import "./styles.css";
 
-const API_URL = "https://ira-the-label.onrender.com/api/products";
+const API_URL =
+  "https://ira-the-label.onrender.com/api/products";
 
 const categories = [
   "All",
@@ -27,6 +29,35 @@ const categories = [
   "Co-ords",
   "Dresses",
 ];
+
+// ========================================================
+// CUSTOMER ID
+// ========================================================
+
+function getCustomerId() {
+  const STORAGE_KEY = "ira_customer_id";
+
+  let customerId = localStorage.getItem(STORAGE_KEY);
+
+  if (!customerId) {
+    if (
+      typeof crypto !== "undefined" &&
+      typeof crypto.randomUUID === "function"
+    ) {
+      customerId = `customer_${crypto.randomUUID()}`;
+    } else {
+      customerId =
+        "customer_" +
+        Date.now() +
+        "_" +
+        Math.random().toString(36).slice(2);
+    }
+
+    localStorage.setItem(STORAGE_KEY, customerId);
+  }
+
+  return customerId;
+}
 
 // ========================================================
 // HELPERS
@@ -73,12 +104,10 @@ function getProductImage(product) {
     return "";
   }
 
-  // Base64 image
   if (image.startsWith("data:image")) {
     return image;
   }
 
-  // Full URL
   if (
     image.startsWith("http://") ||
     image.startsWith("https://")
@@ -86,7 +115,6 @@ function getProductImage(product) {
     return image;
   }
 
-  // Local backend image path
   return `https://ira-the-label.onrender.com${image}`;
 }
 
@@ -143,22 +171,46 @@ function ProductVisual({
 // ========================================================
 
 function App() {
+  const [customerId] = useState(() =>
+    getCustomerId()
+  );
+
+  const cartStorageKey =
+    `ira_cart_${customerId}`;
+
+  const wishlistStorageKey =
+    `ira_wishlist_${customerId}`;
+
   const [page, setPage] = useState("home");
   const [category, setCategory] = useState("All");
   const [query, setQuery] = useState("");
 
+  // ========================================================
   // CART
+  // ========================================================
+
   const [cart, setCart] = useState(() =>
-    getStoredData("ira_cart", [])
+    getStoredData(
+      `ira_cart_${getCustomerId()}`,
+      []
+    )
   );
 
+  // ========================================================
   // WISHLIST
+  // ========================================================
+
   const [wishlist, setWishlist] = useState(() =>
-    getStoredData("ira_wishlist", [])
+    getStoredData(
+      `ira_wishlist_${getCustomerId()}`,
+      []
+    )
   );
 
   const [menuOpen, setMenuOpen] = useState(false);
+
   const [products, setProducts] = useState([]);
+
   const [loading, setLoading] = useState(true);
 
   const [selectedProduct, setSelectedProduct] =
@@ -173,10 +225,10 @@ function App() {
 
   useEffect(() => {
     localStorage.setItem(
-      "ira_cart",
+      cartStorageKey,
       JSON.stringify(cart)
     );
-  }, [cart]);
+  }, [cart, cartStorageKey]);
 
   // ========================================================
   // SAVE WISHLIST
@@ -184,10 +236,10 @@ function App() {
 
   useEffect(() => {
     localStorage.setItem(
-      "ira_wishlist",
+      wishlistStorageKey,
       JSON.stringify(wishlist)
     );
-  }, [wishlist]);
+  }, [wishlist, wishlistStorageKey]);
 
   // ========================================================
   // LOAD PRODUCTS
@@ -196,9 +248,11 @@ function App() {
   const loadProducts = async () => {
     try {
       setLoading(true);
-const response = await fetch(API_URL, {
-  cache: "no-store",
-});
+
+      const response = await fetch(API_URL, {
+        cache: "no-store",
+      });
+
       if (!response.ok) {
         throw new Error(
           `Failed to load products (${response.status})`
@@ -209,7 +263,9 @@ const response = await fetch(API_URL, {
 
       if (Array.isArray(data)) {
         setProducts(data);
-      } else if (Array.isArray(data.products)) {
+      } else if (
+        Array.isArray(data.products)
+      ) {
         setProducts(data.products);
       } else {
         console.error(
@@ -242,23 +298,35 @@ const response = await fetch(API_URL, {
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       const productCategory =
-        String(product.category || "").toLowerCase();
+        String(
+          product.category || ""
+        ).toLowerCase();
 
       const productName =
-        String(product.name || "").toLowerCase();
+        String(
+          product.name || ""
+        ).toLowerCase();
 
       const categoryMatch =
         category === "All" ||
-        productCategory === category.toLowerCase();
+        productCategory ===
+          category.toLowerCase();
 
       const searchMatch =
         productName.includes(
           query.toLowerCase()
         );
 
-      return categoryMatch && searchMatch;
+      return (
+        categoryMatch &&
+        searchMatch
+      );
     });
-  }, [products, category, query]);
+  }, [
+    products,
+    category,
+    query,
+  ]);
 
   // ========================================================
   // ADD TO CART
@@ -268,7 +336,8 @@ const response = await fetch(API_URL, {
     product,
     quantityToAdd = 1
   ) => {
-    const productId = getProductId(product);
+    const productId =
+      getProductId(product);
 
     if (!productId) {
       console.error(
@@ -288,28 +357,31 @@ const response = await fetch(API_URL, {
       const existingProduct =
         currentCart.find(
           (item) =>
-            getProductId(item) === productId
+            getProductId(item) ===
+            productId
         );
 
-      // Product already in cart
       if (existingProduct) {
-        return currentCart.map((item) => {
-          if (
-            getProductId(item) === productId
-          ) {
-            return {
-              ...item,
-              quantity:
-                Number(item.quantity || 1) +
-                quantity,
-            };
-          }
+        return currentCart.map(
+          (item) => {
+            if (
+              getProductId(item) ===
+              productId
+            ) {
+              return {
+                ...item,
+                quantity:
+                  Number(
+                    item.quantity || 1
+                  ) + quantity,
+              };
+            }
 
-          return item;
-        });
+            return item;
+          }
+        );
       }
 
-      // Add new product
       return [
         ...currentCart,
         {
@@ -338,7 +410,9 @@ const response = await fetch(API_URL, {
             return {
               ...item,
               quantity:
-                Number(item.quantity || 1) +
+                Number(
+                  item.quantity || 1
+                ) +
                 Number(change),
             };
           }
@@ -347,7 +421,9 @@ const response = await fetch(API_URL, {
         })
         .filter(
           (item) =>
-            Number(item.quantity || 0) > 0
+            Number(
+              item.quantity || 0
+            ) > 0
         )
     );
   };
@@ -356,7 +432,9 @@ const response = await fetch(API_URL, {
   // REMOVE FROM CART
   // ========================================================
 
-  const removeFromCart = (productId) => {
+  const removeFromCart = (
+    productId
+  ) => {
     setCart((currentCart) =>
       currentCart.filter(
         (item) =>
@@ -378,27 +456,36 @@ const response = await fetch(API_URL, {
   // WISHLIST
   // ========================================================
 
-  const toggleWishlist = (productId) => {
+  const toggleWishlist = (
+    productId
+  ) => {
     const id = String(productId);
 
     if (!id) {
       return;
     }
 
-    setWishlist((currentWishlist) => {
-      const exists = currentWishlist.some(
-        (item) => String(item) === id
-      );
+    setWishlist(
+      (currentWishlist) => {
+        const exists =
+          currentWishlist.some(
+            (item) =>
+              String(item) === id
+          );
 
-      if (exists) {
-        return currentWishlist.filter(
-          (item) =>
-            String(item) !== id
-        );
+        if (exists) {
+          return currentWishlist.filter(
+            (item) =>
+              String(item) !== id
+          );
+        }
+
+        return [
+          ...currentWishlist,
+          id,
+        ];
       }
-
-      return [...currentWishlist, id];
-    });
+    );
   };
 
   // ========================================================
@@ -458,7 +545,9 @@ const response = await fetch(API_URL, {
       return;
     }
 
-    setCheckoutItems([...cart]);
+    setCheckoutItems([
+      ...cart,
+    ]);
 
     nav("checkout");
   };
@@ -467,12 +556,15 @@ const response = await fetch(API_URL, {
   // CART COUNT
   // ========================================================
 
-  const cartItemCount = cart.reduce(
-    (total, item) =>
-      total +
-      Number(item.quantity || 1),
-    0
-  );
+  const cartItemCount =
+    cart.reduce(
+      (total, item) =>
+        total +
+        Number(
+          item.quantity || 1
+        ),
+      0
+    );
 
   // ========================================================
   // ADMIN PAGE
@@ -495,30 +587,46 @@ const response = await fetch(API_URL, {
 
       <header className="header">
         <div className="topline">
-          LIGHT • BREEZY • EVERYDAY WEARABLES
+          LIGHT • BREEZY • EVERYDAY
+          WEARABLES
         </div>
 
         <div className="navrow">
           <button
             className="icon-btn mobile-only"
             onClick={() =>
-              setMenuOpen(!menuOpen)
+              setMenuOpen(
+                !menuOpen
+              )
             }
           >
-            {menuOpen ? <X /> : <Menu />}
+            {menuOpen ? (
+              <X />
+            ) : (
+              <Menu />
+            )}
           </button>
 
           <div
             className="wordmark"
-            onClick={() => nav("home")}
-            style={{ cursor: "pointer" }}
+            onClick={() =>
+              nav("home")
+            }
+            style={{
+              cursor: "pointer",
+            }}
           >
-            IRA <span>THE LABEL</span>
+            IRA{" "}
+            <span>
+              THE LABEL
+            </span>
           </div>
 
           <nav
             className={`navlinks ${
-              menuOpen ? "open" : ""
+              menuOpen
+                ? "open"
+                : ""
             }`}
           >
             {[
@@ -534,13 +642,20 @@ const response = await fetch(API_URL, {
                 key={item}
                 onClick={() => {
                   if (
-                    item === "New In" ||
-                    item === "Collections" ||
-                    item === "Sale"
+                    item ===
+                      "New In" ||
+                    item ===
+                      "Collections" ||
+                    item ===
+                      "Sale"
                   ) {
-                    setCategory("All");
+                    setCategory(
+                      "All"
+                    );
                   } else {
-                    setCategory(item);
+                    setCategory(
+                      item
+                    );
                   }
 
                   nav("shop");
@@ -551,9 +666,24 @@ const response = await fetch(API_URL, {
             ))}
           </nav>
 
+          {/* MY ORDERS */}
+
           <button
             className="admin-button"
-            onClick={() => nav("admin")}
+            onClick={() =>
+              nav("orders")
+            }
+          >
+            My Orders
+          </button>
+
+          {/* ADMIN */}
+
+          <button
+            className="admin-button"
+            onClick={() =>
+              nav("admin")
+            }
           >
             Admin
           </button>
@@ -565,7 +695,9 @@ const response = await fetch(API_URL, {
               <input
                 value={query}
                 onChange={(event) =>
-                  setQuery(event.target.value)
+                  setQuery(
+                    event.target.value
+                  )
                 }
                 placeholder="Search IRA..."
               />
@@ -574,27 +706,40 @@ const response = await fetch(API_URL, {
             <button
               className="icon-btn"
               onClick={() =>
-                nav("wishlist")
+                nav(
+                  "wishlist"
+                )
               }
             >
               <Heart
                 fill={
-                  wishlist.length > 0
+                  wishlist.length >
+                  0
                     ? "currentColor"
                     : "none"
                 }
               />
 
-              <b>{wishlist.length}</b>
+              <b>
+                {
+                  wishlist.length
+                }
+              </b>
             </button>
 
             <button
               className="icon-btn"
-              onClick={() => nav("cart")}
+              onClick={() =>
+                nav("cart")
+              }
             >
               <ShoppingBag />
 
-              <b>{cartItemCount}</b>
+              <b>
+                {
+                  cartItemCount
+                }
+              </b>
             </button>
           </div>
         </div>
@@ -605,12 +750,20 @@ const response = await fetch(API_URL, {
       {page === "home" && (
         <Home
           nav={nav}
-          setCategory={setCategory}
+          setCategory={
+            setCategory
+          }
           products={products}
-          openProduct={openProduct}
+          openProduct={
+            openProduct
+          }
           wishlist={wishlist}
-          toggleWishlist={toggleWishlist}
-          addToCart={addToCart}
+          toggleWishlist={
+            toggleWishlist
+          }
+          addToCart={
+            addToCart
+          }
         />
       )}
 
@@ -618,14 +771,30 @@ const response = await fetch(API_URL, {
 
       {page === "shop" && (
         <Shop
-          products={filteredProducts}
-          category={category}
-          setCategory={setCategory}
-          wishlist={wishlist}
-          toggleWishlist={toggleWishlist}
-          addToCart={addToCart}
-          loading={loading}
-          openProduct={openProduct}
+          products={
+            filteredProducts
+          }
+          category={
+            category
+          }
+          setCategory={
+            setCategory
+          }
+          wishlist={
+            wishlist
+          }
+          toggleWishlist={
+            toggleWishlist
+          }
+          addToCart={
+            addToCart
+          }
+          loading={
+            loading
+          }
+          openProduct={
+            openProduct
+          }
         />
       )}
 
@@ -634,12 +803,24 @@ const response = await fetch(API_URL, {
       {page === "product" &&
         selectedProduct && (
           <ProductDetails
-            product={selectedProduct}
-            onBack={() => nav("shop")}
-            addToCart={addToCart}
-            onBuyNow={buyNow}
-            wishlist={wishlist}
-            toggleWishlist={toggleWishlist}
+            product={
+              selectedProduct
+            }
+            onBack={() =>
+              nav("shop")
+            }
+            addToCart={
+              addToCart
+            }
+            onBuyNow={
+              buyNow
+            }
+            wishlist={
+              wishlist
+            }
+            toggleWishlist={
+              toggleWishlist
+            }
           />
         )}
 
@@ -648,9 +829,15 @@ const response = await fetch(API_URL, {
       {page === "cart" && (
         <Cart
           cart={cart}
-          removeFromCart={removeFromCart}
-          updateQuantity={updateQuantity}
-          checkoutCart={checkoutCart}
+          removeFromCart={
+            removeFromCart
+          }
+          updateQuantity={
+            updateQuantity
+          }
+          checkoutCart={
+            checkoutCart
+          }
           nav={nav}
         />
       )}
@@ -659,9 +846,27 @@ const response = await fetch(API_URL, {
 
       {page === "checkout" && (
         <Checkout
-          items={checkoutItems}
+          items={
+            checkoutItems
+          }
           nav={nav}
-          clearCart={clearCart}
+          clearCart={
+            clearCart
+          }
+          customerId={
+            customerId
+          }
+        />
+      )}
+
+      {/* ================= MY ORDERS ================= */}
+
+      {page === "orders" && (
+        <MyOrders
+          customerId={
+            customerId
+          }
+          nav={nav}
         />
       )}
 
@@ -674,14 +879,24 @@ const response = await fetch(API_URL, {
               wishlist.some(
                 (id) =>
                   String(id) ===
-                  getProductId(product)
+                  getProductId(
+                    product
+                  )
               )
           )}
           nav={nav}
-          wishlist={wishlist}
-          toggleWishlist={toggleWishlist}
-          addToCart={addToCart}
-          openProduct={openProduct}
+          wishlist={
+            wishlist
+          }
+          toggleWishlist={
+            toggleWishlist
+          }
+          addToCart={
+            addToCart
+          }
+          openProduct={
+            openProduct
+          }
         />
       )}
 
@@ -689,18 +904,33 @@ const response = await fetch(API_URL, {
 
       <footer>
         <div className="footer-brand">
-          IRA <span>THE LABEL</span>
+          IRA{" "}
+          <span>
+            THE LABEL
+          </span>
         </div>
 
         <p>
-          Light. Breezy. Everyday wearables.
+          Light. Breezy.
+          Everyday wearables.
         </p>
 
         <div className="footer-links">
-          <button>About</button>
-          <button>Shipping</button>
-          <button>Returns</button>
-          <button>Contact</button>
+          <button>
+            About
+          </button>
+
+          <button>
+            Shipping
+          </button>
+
+          <button>
+            Returns
+          </button>
+
+          <button>
+            Contact
+          </button>
         </div>
 
         <div className="footer-bottom">
@@ -709,7 +939,9 @@ const response = await fetch(API_URL, {
           </span>
 
           <button
-            onClick={() => nav("admin")}
+            onClick={() =>
+              nav("admin")
+            }
           >
             Owner Dashboard
           </button>
@@ -743,21 +975,30 @@ function Home({
           <h1>
             Made for your
             <br />
-            <i>everyday.</i>
+            <i>
+              everyday.
+            </i>
           </h1>
 
           <p className="hero-text">
-            Light, breezy silhouettes designed
-            to feel effortless from morning
-            to evening.
+            Light, breezy
+            silhouettes
+            designed to feel
+            effortless from
+            morning to evening.
           </p>
 
           <button
             className="primary"
-            onClick={() => nav("shop")}
+            onClick={() =>
+              nav("shop")
+            }
           >
-            Explore the collection
-            <ArrowRight size={16} />
+            Explore the
+            collection
+            <ArrowRight
+              size={16}
+            />
           </button>
         </div>
 
@@ -771,13 +1012,27 @@ function Home({
       </section>
 
       <section className="marquee">
-        <span>NEW ARRIVALS</span>
+        <span>
+          NEW ARRIVALS
+        </span>
+
         <span>•</span>
-        <span>EVERYDAY WEAR</span>
+
+        <span>
+          EVERYDAY WEAR
+        </span>
+
         <span>•</span>
-        <span>IRA THE LABEL</span>
+
+        <span>
+          IRA THE LABEL
+        </span>
+
         <span>•</span>
-        <span>NEW ARRIVALS</span>
+
+        <span>
+          NEW ARRIVALS
+        </span>
       </section>
 
       <section className="section">
@@ -788,16 +1043,22 @@ function Home({
             </p>
 
             <h2>
-              Find your everyday favourite.
+              Find your
+              everyday
+              favourite.
             </h2>
           </div>
 
           <button
             className="text-btn"
-            onClick={() => nav("shop")}
+            onClick={() =>
+              nav("shop")
+            }
           >
             View all
-            <ArrowRight size={15} />
+            <ArrowRight
+              size={15}
+            />
           </button>
         </div>
 
@@ -806,24 +1067,38 @@ function Home({
             ["Kurtis", "rose"],
             ["Suits", "green"],
             ["Sets", "sky"],
-            ["Dresses", "lavender"],
-          ].map(([name, tone]) => (
-            <button
-              className="category-card"
-              key={name}
-              onClick={() => {
-                setCategory(name);
-                nav("shop");
-              }}
-            >
-              <ProductVisual tone={tone} />
+            [
+              "Dresses",
+              "lavender",
+            ],
+          ].map(
+            ([name, tone]) => (
+              <button
+                className="category-card"
+                key={name}
+                onClick={() => {
+                  setCategory(
+                    name
+                  );
+                  nav("shop");
+                }}
+              >
+                <ProductVisual
+                  tone={tone}
+                />
 
-              <div>
-                <span>{name}</span>
-                <ArrowRight size={15} />
-              </div>
-            </button>
-          ))}
+                <div>
+                  <span>
+                    {name}
+                  </span>
+
+                  <ArrowRight
+                    size={15}
+                  />
+                </div>
+              </button>
+            )
+          )}
         </div>
       </section>
 
@@ -834,31 +1109,49 @@ function Home({
               JUST IN
             </p>
 
-            <h2>New arrivals.</h2>
+            <h2>
+              New arrivals.
+            </h2>
           </div>
 
           <button
             className="text-btn"
-            onClick={() => nav("shop")}
+            onClick={() =>
+              nav("shop")
+            }
           >
             Shop all
-            <ArrowRight size={15} />
+            <ArrowRight
+              size={15}
+            />
           </button>
         </div>
 
         <div className="product-grid">
           {products
             .slice(0, 4)
-            .map((product) => (
-              <ProductCard
-                key={getProductId(product)}
-                p={product}
-                wishlist={wishlist}
-                toggleWish={toggleWishlist}
-                addToCart={addToCart}
-                openProduct={openProduct}
-              />
-            ))}
+            .map(
+              (product) => (
+                <ProductCard
+                  key={getProductId(
+                    product
+                  )}
+                  p={product}
+                  wishlist={
+                    wishlist
+                  }
+                  toggleWish={
+                    toggleWishlist
+                  }
+                  addToCart={
+                    addToCart
+                  }
+                  openProduct={
+                    openProduct
+                  }
+                />
+              )
+            )}
         </div>
       </section>
     </main>
@@ -886,70 +1179,99 @@ function Shop({
           IRA THE LABEL
         </p>
 
-        <h1>Shop the collection.</h1>
+        <h1>
+          Shop the
+          collection.
+        </h1>
 
         <p>
-          Everyday pieces, designed to be
+          Everyday pieces,
+          designed to be
           lived in.
         </p>
       </div>
 
       <div className="shop-tools">
         <div className="chips">
-          {categories.map((item) => (
-            <button
-              className={
-                category === item
-                  ? "active"
-                  : ""
-              }
-              onClick={() =>
-                setCategory(item)
-              }
-              key={item}
-            >
-              {item}
-            </button>
-          ))}
+          {categories.map(
+            (item) => (
+              <button
+                className={
+                  category === item
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setCategory(
+                    item
+                  )
+                }
+                key={item}
+              >
+                {item}
+              </button>
+            )
+          )}
         </div>
 
         <button className="filter">
-          <SlidersHorizontal size={16} />
+          <SlidersHorizontal
+            size={16}
+          />
           Filters
-          <ChevronDown size={15} />
+          <ChevronDown
+            size={15}
+          />
         </button>
       </div>
 
       {loading ? (
         <p
           style={{
-            textAlign: "center",
+            textAlign:
+              "center",
             padding: "40px",
           }}
         >
-          Loading products...
+          Loading
+          products...
         </p>
-      ) : products.length === 0 ? (
+      ) : products.length ===
+        0 ? (
         <p
           style={{
-            textAlign: "center",
+            textAlign:
+              "center",
             padding: "40px",
           }}
         >
-          No products found.
+          No products
+          found.
         </p>
       ) : (
         <div className="product-grid large">
-          {products.map((product) => (
-            <ProductCard
-              key={getProductId(product)}
-              p={product}
-              wishlist={wishlist}
-              toggleWish={toggleWishlist}
-              addToCart={addToCart}
-              openProduct={openProduct}
-            />
-          ))}
+          {products.map(
+            (product) => (
+              <ProductCard
+                key={getProductId(
+                  product
+                )}
+                p={product}
+                wishlist={
+                  wishlist
+                }
+                toggleWish={
+                  toggleWishlist
+                }
+                addToCart={
+                  addToCart
+                }
+                openProduct={
+                  openProduct
+                }
+              />
+            )
+          )}
         </div>
       )}
     </main>
@@ -967,13 +1289,18 @@ function ProductCard({
   addToCart,
   openProduct,
 }) {
-  const productId = getProductId(p);
+  const productId =
+    getProductId(p);
 
-  const liked = wishlist.some(
-    (id) => String(id) === productId
-  );
+  const liked =
+    wishlist.some(
+      (id) =>
+        String(id) ===
+        productId
+    );
 
-  const image = getProductImage(p);
+  const image =
+    getProductImage(p);
 
   const discountedPrice =
     getDiscountedPrice(p);
@@ -982,8 +1309,13 @@ function ProductCard({
     <article className="product-card">
       <div
         className="product-media"
-        style={{ cursor: "pointer" }}
-        onClick={() => openProduct(p)}
+        style={{
+          cursor:
+            "pointer",
+        }}
+        onClick={() =>
+          openProduct(p)
+        }
       >
         {p.tag && (
           <span className="tag">
@@ -994,9 +1326,14 @@ function ProductCard({
         <button
           type="button"
           className="wish"
-          onClick={(event) => {
+          onClick={(
+            event
+          ) => {
             event.stopPropagation();
-            toggleWish(productId);
+
+            toggleWish(
+              productId
+            );
           }}
         >
           <Heart
@@ -1009,7 +1346,10 @@ function ProductCard({
         </button>
 
         <ProductVisual
-          tone={p.tone || "rose"}
+          tone={
+            p.tone ||
+            "rose"
+          }
           image={image}
           name={p.name}
         />
@@ -1017,9 +1357,15 @@ function ProductCard({
         <button
           type="button"
           className="quick-add"
-          onClick={(event) => {
+          onClick={(
+            event
+          ) => {
             event.stopPropagation();
-            addToCart(p, 1);
+
+            addToCart(
+              p,
+              1
+            );
           }}
         >
           Add to bag
@@ -1027,22 +1373,37 @@ function ProductCard({
       </div>
 
       <div className="product-info">
-        <p>{p.category}</p>
+        <p>
+          {p.category}
+        </p>
 
         <h3
-          style={{ cursor: "pointer" }}
-          onClick={() => openProduct(p)}
+          style={{
+            cursor:
+              "pointer",
+          }}
+          onClick={() =>
+            openProduct(p)
+          }
         >
           {p.name}
         </h3>
 
         <div>
           <strong>
-            {money(discountedPrice)}
+            {money(
+              discountedPrice
+            )}
           </strong>
 
-          {Number(p.discount) > 0 && (
-            <del>{money(p.price)}</del>
+          {Number(
+            p.discount
+          ) > 0 && (
+            <del>
+              {money(
+                p.price
+              )}
+            </del>
           )}
         </div>
       </div>
@@ -1061,25 +1422,39 @@ function Cart({
   checkoutCart,
   nav,
 }) {
-  const total = cart.reduce(
-    (sum, product) => {
-      const price =
-        getDiscountedPrice(product);
+  const total =
+    cart.reduce(
+      (sum, product) => {
+        const price =
+          getDiscountedPrice(
+            product
+          );
 
-      const quantity =
-        Number(product.quantity || 1);
+        const quantity =
+          Number(
+            product.quantity ||
+              1
+          );
 
-      return sum + price * quantity;
-    },
-    0
-  );
+        return (
+          sum +
+          price *
+            quantity
+        );
+      },
+      0
+    );
 
-  const totalItems = cart.reduce(
-    (sum, product) =>
-      sum +
-      Number(product.quantity || 1),
-    0
-  );
+  const totalItems =
+    cart.reduce(
+      (sum, product) =>
+        sum +
+        Number(
+          product.quantity ||
+            1
+        ),
+      0
+    );
 
   return (
     <main className="simple-page">
@@ -1087,22 +1462,34 @@ function Cart({
         YOUR BAG
       </p>
 
-      <h1>Your shopping bag.</h1>
+      <h1>
+        Your shopping
+        bag.
+      </h1>
 
-      {cart.length === 0 ? (
+      {cart.length ===
+      0 ? (
         <div className="empty-state">
-          <ShoppingBag size={34} />
+          <ShoppingBag
+            size={34}
+          />
 
-          <h3>Your bag is empty</h3>
+          <h3>
+            Your bag is
+            empty
+          </h3>
 
           <p>
-            Add something you love from the
-            collection.
+            Add something
+            you love from
+            the collection.
           </p>
 
           <button
             className="primary"
-            onClick={() => nav("shop")}
+            onClick={() =>
+              nav("shop")
+            }
           >
             Shop now
           </button>
@@ -1110,132 +1497,180 @@ function Cart({
       ) : (
         <div className="cart-layout">
           <div>
-            {cart.map((product) => {
-              const productId =
-                getProductId(product);
+            {cart.map(
+              (product) => {
+                const productId =
+                  getProductId(
+                    product
+                  );
 
-              const image =
-                getProductImage(product);
+                const image =
+                  getProductImage(
+                    product
+                  );
 
-              const quantity =
-                Number(product.quantity || 1);
+                const quantity =
+                  Number(
+                    product.quantity ||
+                      1
+                  );
 
-              const price =
-                getDiscountedPrice(product);
+                const price =
+                  getDiscountedPrice(
+                    product
+                  );
 
-              return (
-                <div
-                  className="cart-item"
-                  key={productId}
-                >
-                  <ProductVisual
-                    tone={
-                      product.tone || "rose"
+                return (
+                  <div
+                    className="cart-item"
+                    key={
+                      productId
                     }
-                    image={image}
-                    name={product.name}
-                  />
+                  >
+                    <ProductVisual
+                      tone={
+                        product.tone ||
+                        "rose"
+                      }
+                      image={
+                        image
+                      }
+                      name={
+                        product.name
+                      }
+                    />
 
-                  <div className="cart-item-info">
-                    <h3>
-                      {product.name}
-                    </h3>
+                    <div className="cart-item-info">
+                      <h3>
+                        {
+                          product.name
+                        }
+                      </h3>
 
-                    <p>
-                      {product.category}
-                    </p>
+                      <p>
+                        {
+                          product.category
+                        }
+                      </p>
 
-                    <strong>
-                      {money(price)}
-                    </strong>
+                      <strong>
+                        {money(
+                          price
+                        )}
+                      </strong>
 
-                    <div className="quantity-controls">
+                      <div className="quantity-controls">
+                        <button
+                          onClick={() =>
+                            updateQuantity(
+                              productId,
+                              -1
+                            )
+                          }
+                        >
+                          −
+                        </button>
+
+                        <span>
+                          {
+                            quantity
+                          }
+                        </span>
+
+                        <button
+                          onClick={() =>
+                            updateQuantity(
+                              productId,
+                              1
+                            )
+                          }
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="cart-item-right">
+                      <strong>
+                        {money(
+                          price *
+                            quantity
+                        )}
+                      </strong>
+
                       <button
+                        className="icon-btn"
                         onClick={() =>
-                          updateQuantity(
-                            productId,
-                            -1
+                          removeFromCart(
+                            productId
                           )
                         }
                       >
-                        −
-                      </button>
-
-                      <span>
-                        {quantity}
-                      </span>
-
-                      <button
-                        onClick={() =>
-                          updateQuantity(
-                            productId,
-                            1
-                          )
-                        }
-                      >
-                        +
+                        <Trash2
+                          size={17}
+                        />
                       </button>
                     </div>
                   </div>
-
-                  <div className="cart-item-right">
-                    <strong>
-                      {money(
-                        price * quantity
-                      )}
-                    </strong>
-
-                    <button
-                      className="icon-btn"
-                      onClick={() =>
-                        removeFromCart(
-                          productId
-                        )
-                      }
-                    >
-                      <Trash2 size={17} />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              }
+            )}
           </div>
 
           <aside className="summary">
-            <h3>Order summary</h3>
+            <h3>
+              Order summary
+            </h3>
 
             <div>
               <span>
-                Items ({totalItems})
+                Items (
+                {
+                  totalItems
+                }
+                )
               </span>
 
               <strong>
-                {money(total)}
+                {money(
+                  total
+                )}
               </strong>
             </div>
 
             <div>
-              <span>Shipping</span>
               <span>
-                Calculated at checkout
+                Shipping
+              </span>
+
+              <span>
+                Calculated at
+                checkout
               </span>
             </div>
 
             <hr />
 
             <div className="total">
-              <span>Total</span>
+              <span>
+                Total
+              </span>
 
               <strong>
-                {money(total)}
+                {money(
+                  total
+                )}
               </strong>
             </div>
 
             <button
               className="primary full"
-              onClick={checkoutCart}
+              onClick={
+                checkoutCart
+              }
             >
-              Proceed to checkout
+              Proceed to
+              checkout
             </button>
           </aside>
         </div>
@@ -1262,38 +1697,58 @@ function Wishlist({
         SAVED FOR LATER
       </p>
 
-      <h1>Your wishlist.</h1>
+      <h1>
+        Your wishlist.
+      </h1>
 
       {!products.length ? (
         <div className="empty-state">
           <Heart size={34} />
 
-          <h3>Nothing saved yet</h3>
+          <h3>
+            Nothing saved
+            yet
+          </h3>
 
           <p>
-            Tap the heart on any piece you
+            Tap the heart on
+            any piece you
             love.
           </p>
 
           <button
             className="primary"
-            onClick={() => nav("shop")}
+            onClick={() =>
+              nav("shop")
+            }
           >
             Explore pieces
           </button>
         </div>
       ) : (
         <div className="product-grid">
-          {products.map((product) => (
-            <ProductCard
-              key={getProductId(product)}
-              p={product}
-              wishlist={wishlist}
-              toggleWish={toggleWishlist}
-              addToCart={addToCart}
-              openProduct={openProduct}
-            />
-          ))}
+          {products.map(
+            (product) => (
+              <ProductCard
+                key={getProductId(
+                  product
+                )}
+                p={product}
+                wishlist={
+                  wishlist
+                }
+                toggleWish={
+                  toggleWishlist
+                }
+                addToCart={
+                  addToCart
+                }
+                openProduct={
+                  openProduct
+                }
+              />
+            )
+          )}
         </div>
       )}
     </main>
@@ -1305,7 +1760,9 @@ function Wishlist({
 // ========================================================
 
 createRoot(
-  document.getElementById("root")
+  document.getElementById(
+    "root"
+  )
 ).render(
   <React.StrictMode>
     <App />

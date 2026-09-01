@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -15,14 +15,17 @@ import {
 // API
 // ======================================================
 
-const API_URL = "https://ira-the-label.onrender.com";
+const API_URL =
+  "https://ira-the-label.onrender.com";
 
 // ======================================================
 // HELPERS
 // ======================================================
 
 const money = (value) => {
-  return `₹${Number(value || 0).toLocaleString("en-IN")}`;
+  return `₹${Number(value || 0).toLocaleString(
+    "en-IN"
+  )}`;
 };
 
 const getProductId = (product) => {
@@ -46,9 +49,10 @@ const getProductImage = (product) => {
     image = product.image;
   }
 
-  if (!image) return "";
+  if (!image) {
+    return "";
+  }
 
-  // Base64 image
   if (
     typeof image === "string" &&
     image.startsWith("data:image")
@@ -56,21 +60,18 @@ const getProductImage = (product) => {
     return image;
   }
 
-  // Full URL
   if (
     typeof image === "string" &&
-    (
-      image.startsWith("http://") ||
-      image.startsWith("https://")
-    )
+    (image.startsWith("http://") ||
+      image.startsWith("https://"))
   ) {
     return image;
   }
 
-  // Backend image path
-  return `https://ira-the-label.onrender.com${image}`;
+  return `${API_URL}${image}`;
 };
 
+// Supports both the current product structure and discounted products.
 const getProductPrice = (product) => {
   const price = Number(product?.price || 0);
   const discount = Number(product?.discount || 0);
@@ -84,21 +85,76 @@ const getProductPrice = (product) => {
   return price;
 };
 
-const getPaymentMethodName = (method) => {
-  const methods = {
-    cod: "Cash on Delivery",
-    online: "Online Payment",
-    bank: "Bank Transfer",
-  };
+// ======================================================
+// PAYMENT METHODS
+// ======================================================
 
-  return methods[method] || method;
+const PAYMENT_METHODS = {
+  COD: {
+    value: "COD",
+    label: "Cash on Delivery",
+    description:
+      "Pay for your order when it arrives.",
+    icon: "COD",
+  },
+
+  UPI: {
+    value: "UPI",
+    label: "UPI",
+    description:
+      "Pay using your preferred UPI app.",
+    icon: "UPI",
+  },
+
+  CARD: {
+    value: "CARD",
+    label: "Card",
+    description:
+      "Pay securely using your debit or credit card.",
+    icon: "CARD",
+  },
+};
+
+const getAvailablePaymentMethods = (items) => {
+  if (!items.length) {
+    return [];
+  }
+
+  const methodsPerProduct = items.map(
+    (product) => {
+      if (
+        Array.isArray(product?.paymentMethods) &&
+        product.paymentMethods.length > 0
+      ) {
+        return product.paymentMethods;
+      }
+
+      // Older products that do not have this field
+      // continue to allow all three methods.
+      return ["COD", "UPI", "CARD"];
+    }
+  );
+
+  // A payment method is available only when every
+  // product in the current order supports it.
+  return Object.keys(PAYMENT_METHODS).filter(
+    (method) =>
+      methodsPerProduct.every((methods) =>
+        methods.includes(method)
+      )
+  );
 };
 
 // ======================================================
 // CHECKOUT COMPONENT
 // ======================================================
 
-function Checkout({ items = [], nav, clearCart }) {
+function Checkout({
+  items = [],
+  nav,
+  clearCart,
+  customerId,
+}) {
   const [customer, setCustomer] = useState({
     firstName: "",
     lastName: "",
@@ -112,7 +168,7 @@ function Checkout({ items = [], nav, clearCart }) {
   });
 
   const [paymentMethod, setPaymentMethod] =
-    useState("cod");
+    useState("COD");
 
   const [placingOrder, setPlacingOrder] =
     useState(false);
@@ -127,6 +183,36 @@ function Checkout({ items = [], nav, clearCart }) {
     useState("");
 
   // ======================================================
+  // AVAILABLE PAYMENT METHODS
+  // ======================================================
+
+  const availablePaymentMethods = useMemo(() => {
+    return getAvailablePaymentMethods(items);
+  }, [items]);
+
+  // Keep the selected payment method valid when
+  // products/cart contents change.
+  useEffect(() => {
+    if (!availablePaymentMethods.length) {
+      setPaymentMethod("");
+      return;
+    }
+
+    if (
+      !availablePaymentMethods.includes(
+        paymentMethod
+      )
+    ) {
+      setPaymentMethod(
+        availablePaymentMethods[0]
+      );
+    }
+  }, [
+    availablePaymentMethods,
+    paymentMethod,
+  ]);
+
+  // ======================================================
   // TOTALS
   // ======================================================
 
@@ -137,9 +223,12 @@ function Checkout({ items = [], nav, clearCart }) {
           getProductPrice(product);
 
         const quantity =
-          Number(product.quantity || 1);
+          Number(product?.quantity || 1);
 
-        return total + price * quantity;
+        return (
+          total +
+          price * quantity
+        );
       },
       0
     );
@@ -150,7 +239,7 @@ function Checkout({ items = [], nav, clearCart }) {
       (total, product) => {
         return (
           total +
-          Number(product.quantity || 1)
+          Number(product?.quantity || 1)
         );
       },
       0
@@ -158,14 +247,16 @@ function Checkout({ items = [], nav, clearCart }) {
   }, [items]);
 
   const shipping = 0;
-
   const total = subtotal + shipping;
 
   // ======================================================
   // UPDATE CUSTOMER
   // ======================================================
 
-  const updateCustomer = (field, value) => {
+  const updateCustomer = (
+    field,
+    value
+  ) => {
     setCustomer((current) => ({
       ...current,
       [field]: value,
@@ -213,6 +304,21 @@ function Checkout({ items = [], nav, clearCart }) {
       return "Please enter your PIN code.";
     }
 
+    if (!availablePaymentMethods.length) {
+      return (
+        "The products in your bag do not have a common payment method. " +
+        "Please order them separately."
+      );
+    }
+
+    if (
+      !availablePaymentMethods.includes(
+        paymentMethod
+      )
+    ) {
+      return "Please select a valid payment method.";
+    }
+
     return "";
   };
 
@@ -223,13 +329,20 @@ function Checkout({ items = [], nav, clearCart }) {
   const placeOrder = async () => {
     setError("");
 
-    // Cart validation
-    if (!items.length) {
-      setError("Your shopping bag is empty.");
+    if (!customerId) {
+      setError(
+        "Unable to identify this customer. Please refresh the page and try again."
+      );
       return;
     }
 
-    // Form validation
+    if (!items.length) {
+      setError(
+        "Your shopping bag is empty."
+      );
+      return;
+    }
+
     const validationError =
       validateCheckout();
 
@@ -247,11 +360,9 @@ function Checkout({ items = [], nav, clearCart }) {
     setPlacingOrder(true);
 
     try {
-      // ================================================
-      // DATA MATCHES YOUR CURRENT SERVER.JS SCHEMA
-      // ================================================
-
       const orderData = {
+        customerId,
+
         customer: {
           firstName:
             customer.firstName.trim(),
@@ -283,43 +394,47 @@ function Checkout({ items = [], nav, clearCart }) {
             customer.pincode.trim(),
         },
 
-        items: items.map((product) => {
-          const price =
-            getProductPrice(product);
+        items: items.map(
+          (product) => {
+            const price =
+              getProductPrice(product);
 
-          const quantity =
-            Number(product.quantity || 1);
+            const quantity =
+              Number(
+                product?.quantity || 1
+              );
 
-          return {
-            productId:
-              getProductId(product),
+            return {
+              productId:
+                getProductId(product),
 
-            name:
-              product.name || "Product",
+              name:
+                product?.name ||
+                "Product",
 
-            price,
+              price,
 
-            quantity,
+              quantity,
 
-            image:
-              getProductImage(product),
+              image:
+                getProductImage(product),
 
-            size:
-              product.selectedSize ||
-              product.size ||
-              "",
+              size:
+                product?.selectedSize ||
+                product?.size ||
+                "",
 
-            color:
-              product.selectedColor ||
-              product.color ||
-              "",
-          };
-        }),
+              color:
+                product?.selectedColor ||
+                product?.color ||
+                "",
+            };
+          }
+        ),
 
         paymentMethod:
-          getPaymentMethodName(
-            paymentMethod
-          ),
+          PAYMENT_METHODS[paymentMethod]?.label ||
+          paymentMethod,
 
         totalAmount: total,
 
@@ -327,29 +442,36 @@ function Checkout({ items = [], nav, clearCart }) {
       };
 
       console.log(
+        "Customer ID:",
+        customerId
+      );
+
+      console.log(
+        "Payment method:",
+        paymentMethod
+      );
+
+      console.log(
         "Sending order:",
         orderData
       );
 
-      // ================================================
-      // SEND ORDER TO BACKEND
-      // ================================================
+      const response =
+        await fetch(
+          `${API_URL}/api/orders`,
+          {
+            method: "POST",
 
-      const response = await fetch(
-        `${API_URL}/orders`,
-        {
-          method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body: JSON.stringify(
-            orderData
-          ),
-        }
-      );
+            body: JSON.stringify(
+              orderData
+            ),
+          }
+        );
 
       const contentType =
         response.headers.get(
@@ -379,10 +501,6 @@ function Checkout({ items = [], nav, clearCart }) {
         };
       }
 
-      // ================================================
-      // HANDLE ERROR
-      // ================================================
-
       if (!response.ok) {
         throw new Error(
           result.message ||
@@ -395,7 +513,6 @@ function Checkout({ items = [], nav, clearCart }) {
         result
       );
 
-      // Get MongoDB order ID
       const newOrderId =
         result?.order?._id ||
         result?._id ||
@@ -403,7 +520,6 @@ function Checkout({ items = [], nav, clearCart }) {
 
       setOrderId(newOrderId);
 
-      // Clear shopping cart
       if (
         typeof clearCart ===
         "function"
@@ -411,7 +527,6 @@ function Checkout({ items = [], nav, clearCart }) {
         clearCart();
       }
 
-      // Show success screen
       setOrderPlaced(true);
 
       window.scrollTo({
@@ -477,7 +592,8 @@ function Checkout({ items = [], nav, clearCart }) {
 
               <span>
                 {totalItems} item
-                {totalItems !== 1
+                {totalItems !==
+                1
                   ? "s"
                   : ""}
               </span>
@@ -542,18 +658,15 @@ function Checkout({ items = [], nav, clearCart }) {
 
   return (
     <main className="checkout-page">
-
-      {/* BACK BUTTON */}
-
       <button
         className="checkout-back"
-        onClick={() => nav("cart")}
+        onClick={() =>
+          nav("cart")
+        }
       >
         <ArrowLeft size={17} />
         Back to bag
       </button>
-
-      {/* PAGE HEADER */}
 
       <header className="checkout-heading">
         <p className="eyebrow">
@@ -571,8 +684,6 @@ function Checkout({ items = [], nav, clearCart }) {
         </p>
       </header>
 
-      {/* ERROR */}
-
       {error && (
         <div className="checkout-error">
           {error}
@@ -580,17 +691,12 @@ function Checkout({ items = [], nav, clearCart }) {
       )}
 
       <div className="checkout-layout">
-
         {/* LEFT SIDE */}
-
         <section className="checkout-form">
-
           {/* CUSTOMER DETAILS */}
 
           <div className="checkout-section">
-
             <div className="checkout-section-title">
-
               <div className="checkout-title-icon">
                 <User size={18} />
               </div>
@@ -604,13 +710,10 @@ function Checkout({ items = [], nav, clearCart }) {
                   How can we contact you?
                 </p>
               </div>
-
             </div>
 
             <div className="checkout-grid two">
-
               <div className="checkout-field">
-
                 <label>
                   First name *
                 </label>
@@ -628,11 +731,9 @@ function Checkout({ items = [], nav, clearCart }) {
                   }
                   placeholder="First name"
                 />
-
               </div>
 
               <div className="checkout-field">
-
                 <label>
                   Last name *
                 </label>
@@ -650,15 +751,11 @@ function Checkout({ items = [], nav, clearCart }) {
                   }
                   placeholder="Last name"
                 />
-
               </div>
-
             </div>
 
             <div className="checkout-grid two">
-
               <div className="checkout-field">
-
                 <label>
                   Email address *
                 </label>
@@ -676,11 +773,9 @@ function Checkout({ items = [], nav, clearCart }) {
                   }
                   placeholder="you@example.com"
                 />
-
               </div>
 
               <div className="checkout-field">
-
                 <label>
                   Phone number *
                 </label>
@@ -698,19 +793,14 @@ function Checkout({ items = [], nav, clearCart }) {
                   }
                   placeholder="+91 00000 00000"
                 />
-
               </div>
-
             </div>
-
           </div>
 
           {/* DELIVERY ADDRESS */}
 
           <div className="checkout-section">
-
             <div className="checkout-section-title">
-
               <div className="checkout-title-icon">
                 <MapPin size={18} />
               </div>
@@ -725,11 +815,9 @@ function Checkout({ items = [], nav, clearCart }) {
                   order?
                 </p>
               </div>
-
             </div>
 
             <div className="checkout-field">
-
               <label>
                 House number, street and area *
               </label>
@@ -747,11 +835,9 @@ function Checkout({ items = [], nav, clearCart }) {
                 }
                 placeholder="House no., street, locality"
               />
-
             </div>
 
             <div className="checkout-field">
-
               <label>
                 Apartment, floor or landmark
                 <span className="optional">
@@ -772,13 +858,10 @@ function Checkout({ items = [], nav, clearCart }) {
                 }
                 placeholder="Apartment, floor or nearby landmark"
               />
-
             </div>
 
             <div className="checkout-grid three">
-
               <div className="checkout-field">
-
                 <label>
                   City *
                 </label>
@@ -796,11 +879,9 @@ function Checkout({ items = [], nav, clearCart }) {
                   }
                   placeholder="City"
                 />
-
               </div>
 
               <div className="checkout-field">
-
                 <label>
                   State *
                 </label>
@@ -818,11 +899,9 @@ function Checkout({ items = [], nav, clearCart }) {
                   }
                   placeholder="State"
                 />
-
               </div>
 
               <div className="checkout-field">
-
                 <label>
                   PIN code *
                 </label>
@@ -841,19 +920,14 @@ function Checkout({ items = [], nav, clearCart }) {
                   }
                   placeholder="000000"
                 />
-
               </div>
-
             </div>
-
           </div>
 
           {/* PAYMENT METHOD */}
 
           <div className="checkout-section">
-
             <div className="checkout-section-title">
-
               <div className="checkout-title-icon">
                 <CreditCard size={18} />
               </div>
@@ -868,142 +942,101 @@ function Checkout({ items = [], nav, clearCart }) {
                   to pay.
                 </p>
               </div>
-
             </div>
 
             <div className="payment-options">
-
-              <label
-                className={`payment-option ${
-                  paymentMethod === "cod"
-                    ? "selected"
-                    : ""
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="payment"
-                  value="cod"
-                  checked={
-                    paymentMethod === "cod"
-                  }
-                  onChange={() =>
-                    setPaymentMethod("cod")
-                  }
-                />
-
-                <div className="payment-icon">
-                  <Truck size={20} />
+              {availablePaymentMethods.length ===
+              0 ? (
+                <div className="checkout-error">
+                  The products in your bag do
+                  not have a common payment
+                  method. Please order them
+                  separately.
                 </div>
+              ) : (
+                availablePaymentMethods.map(
+                  (method) => {
+                    const payment =
+                      PAYMENT_METHODS[
+                        method
+                      ];
 
-                <div className="payment-copy">
-                  <strong>
-                    Cash on Delivery
-                  </strong>
+                    return (
+                      <label
+                        key={method}
+                        className={`payment-option ${
+                          paymentMethod ===
+                          method
+                            ? "selected"
+                            : ""
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="payment"
+                          value={method}
+                          checked={
+                            paymentMethod ===
+                            method
+                          }
+                          onChange={() =>
+                            setPaymentMethod(
+                              method
+                            )
+                          }
+                        />
 
-                  <span>
-                    Pay for your order when
-                    it arrives.
-                  </span>
-                </div>
+                        <div className="payment-icon">
+                          {method ===
+                            "COD" && (
+                            <Truck
+                              size={20}
+                            />
+                          )}
 
-                <span className="payment-radio" />
+                          {method ===
+                            "UPI" && (
+                            <CreditCard
+                              size={20}
+                            />
+                          )}
 
-              </label>
+                          {method ===
+                            "CARD" && (
+                            <CreditCard
+                              size={20}
+                            />
+                          )}
+                        </div>
 
-              <label
-                className={`payment-option ${
-                  paymentMethod === "online"
-                    ? "selected"
-                    : ""
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="payment"
-                  value="online"
-                  checked={
-                    paymentMethod ===
-                    "online"
+                        <div className="payment-copy">
+                          <strong>
+                            {
+                              payment.label
+                            }
+                          </strong>
+
+                          <span>
+                            {
+                              payment.description
+                            }
+                          </span>
+                        </div>
+
+                        <span className="payment-radio" />
+                      </label>
+                    );
                   }
-                  onChange={() =>
-                    setPaymentMethod(
-                      "online"
-                    )
-                  }
-                />
-
-                <div className="payment-icon">
-                  <CreditCard size={20} />
-                </div>
-
-                <div className="payment-copy">
-                  <strong>
-                    Online Payment
-                  </strong>
-
-                  <span>
-                    Pay securely using UPI,
-                    card or other online
-                    options.
-                  </span>
-                </div>
-
-                <span className="payment-radio" />
-
-              </label>
-
-              <label
-                className={`payment-option ${
-                  paymentMethod === "bank"
-                    ? "selected"
-                    : ""
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="payment"
-                  value="bank"
-                  checked={
-                    paymentMethod === "bank"
-                  }
-                  onChange={() =>
-                    setPaymentMethod("bank")
-                  }
-                />
-
-                <div className="payment-icon">
-                  <Landmark size={20} />
-                </div>
-
-                <div className="payment-copy">
-                  <strong>
-                    Bank Transfer
-                  </strong>
-
-                  <span>
-                    Transfer instructions
-                    will be provided after
-                    your order.
-                  </span>
-                </div>
-
-                <span className="payment-radio" />
-
-              </label>
-
+                )
+              )}
             </div>
-
           </div>
-
         </section>
 
         {/* RIGHT SIDE — ORDER SUMMARY */}
 
         <aside className="checkout-summary">
-
           <div className="checkout-summary-head">
-
             <div>
               <h2>
                 Your order
@@ -1011,48 +1044,53 @@ function Checkout({ items = [], nav, clearCart }) {
 
               <span>
                 {totalItems} item
-                {totalItems !== 1
+                {totalItems !==
+                1
                   ? "s"
                   : ""}
               </span>
             </div>
-
           </div>
 
           {/* PRODUCTS */}
 
           <div className="checkout-products">
-
             {items.map(
               (product, index) => {
                 const productId =
-                  getProductId(product) ||
-                  index;
+                  getProductId(
+                    product
+                  ) || index;
 
                 const image =
-                  getProductImage(product);
+                  getProductImage(
+                    product
+                  );
 
                 const price =
-                  getProductPrice(product);
+                  getProductPrice(
+                    product
+                  );
 
                 const quantity =
                   Number(
-                    product.quantity || 1
+                    product?.quantity ||
+                      1
                   );
 
                 return (
                   <div
                     className="checkout-product"
-                    key={productId}
+                    key={
+                      productId
+                    }
                   >
-
                     <div className="checkout-product-image">
-
                       {image ? (
                         <img
                           src={image}
                           alt={
-                            product.name ||
+                            product?.name ||
                             "Product"
                           }
                         />
@@ -1065,53 +1103,55 @@ function Checkout({ items = [], nav, clearCart }) {
                       <span className="product-quantity">
                         {quantity}
                       </span>
-
                     </div>
 
                     <div className="checkout-product-info">
-
                       <h4>
-                        {product.name ||
+                        {product?.name ||
                           "Product"}
                       </h4>
 
-                      {product.category && (
+                      {product?.category && (
                         <p>
-                          {product.category}
+                          {
+                            product.category
+                          }
                         </p>
                       )}
 
                       <span>
-                        {money(price)} ×{" "}
+                        {money(
+                          price
+                        )}{" "}
+                        ×{" "}
                         {quantity}
                       </span>
-
                     </div>
 
                     <strong>
                       {money(
-                        price * quantity
+                        price *
+                          quantity
                       )}
                     </strong>
-
                   </div>
                 );
               }
             )}
-
           </div>
 
           {/* TOTALS */}
 
           <div className="checkout-totals">
-
             <div>
               <span>
                 Subtotal
               </span>
 
               <strong>
-                {money(subtotal)}
+                {money(
+                  subtotal
+                )}
               </strong>
             </div>
 
@@ -1126,7 +1166,6 @@ function Checkout({ items = [], nav, clearCart }) {
             </div>
 
             <div className="checkout-total">
-
               <span>
                 Total
               </span>
@@ -1134,9 +1173,7 @@ function Checkout({ items = [], nav, clearCart }) {
               <strong>
                 {money(total)}
               </strong>
-
             </div>
-
           </div>
 
           {/* PLACE ORDER */}
@@ -1144,8 +1181,13 @@ function Checkout({ items = [], nav, clearCart }) {
           <button
             type="button"
             className="checkout-place-order"
-            onClick={placeOrder}
-            disabled={placingOrder}
+            onClick={
+              placeOrder
+            }
+            disabled={
+              placingOrder ||
+              !availablePaymentMethods.length
+            }
           >
             {placingOrder
               ? "PLACING ORDER..."
@@ -1155,17 +1197,13 @@ function Checkout({ items = [], nav, clearCart }) {
           </button>
 
           <p className="checkout-secure-text">
-
             <CheckCircle2 size={15} />
 
             Your personal and order details
             are securely submitted to IRA
             THE LABEL.
-
           </p>
-
         </aside>
-
       </div>
     </main>
   );
