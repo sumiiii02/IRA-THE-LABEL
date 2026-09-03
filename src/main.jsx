@@ -77,7 +77,9 @@ function getStoredData(key, fallback = []) {
 
     const parsed = JSON.parse(data);
 
-    return Array.isArray(parsed) ? parsed : fallback;
+    return Array.isArray(parsed)
+      ? parsed
+      : fallback;
   } catch (error) {
     console.error(`Error reading ${key}:`, error);
     return fallback;
@@ -85,7 +87,11 @@ function getStoredData(key, fallback = []) {
 }
 
 function getProductId(product) {
-  return String(product?._id || product?.id || "");
+  return String(
+    product?._id ||
+    product?.id ||
+    ""
+  );
 }
 
 function getProductImage(product) {
@@ -181,9 +187,32 @@ function App() {
   const wishlistStorageKey =
     `ira_wishlist_${customerId}`;
 
+  // ========================================================
+  // STATE
+  // ========================================================
+
   const [page, setPage] = useState("home");
-  const [category, setCategory] = useState("All");
-  const [query, setQuery] = useState("");
+
+  const [category, setCategory] =
+    useState("All");
+
+  const [query, setQuery] =
+    useState("");
+
+  const [menuOpen, setMenuOpen] =
+    useState(false);
+
+  const [products, setProducts] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [selectedProduct, setSelectedProduct] =
+    useState(null);
+
+  const [checkoutItems, setCheckoutItems] =
+    useState([]);
 
   // ========================================================
   // CART
@@ -206,18 +235,6 @@ function App() {
       []
     )
   );
-
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const [products, setProducts] = useState([]);
-
-  const [loading, setLoading] = useState(true);
-
-  const [selectedProduct, setSelectedProduct] =
-    useState(null);
-
-  const [checkoutItems, setCheckoutItems] =
-    useState([]);
 
   // ========================================================
   // SAVE CART
@@ -362,24 +379,22 @@ function App() {
         );
 
       if (existingProduct) {
-        return currentCart.map(
-          (item) => {
-            if (
-              getProductId(item) ===
-              productId
-            ) {
-              return {
-                ...item,
-                quantity:
-                  Number(
-                    item.quantity || 1
-                  ) + quantity,
-              };
-            }
-
-            return item;
+        return currentCart.map((item) => {
+          if (
+            getProductId(item) ===
+            productId
+          ) {
+            return {
+              ...item,
+              quantity:
+                Number(
+                  item.quantity || 1
+                ) + quantity,
+            };
           }
-        );
+
+          return item;
+        });
       }
 
       return [
@@ -587,18 +602,19 @@ function App() {
 
       <header className="header">
         <div className="topline">
-          LIGHT • BREEZY • EVERYDAY
-          WEARABLES
+          LIGHT • BREEZY • EVERYDAY WEARABLES
         </div>
 
         <div className="navrow">
+
+          {/* MOBILE MENU BUTTON */}
+
           <button
             className="icon-btn mobile-only"
             onClick={() =>
-              setMenuOpen(
-                !menuOpen
-              )
+              setMenuOpen(!menuOpen)
             }
+            aria-label="Toggle menu"
           >
             {menuOpen ? (
               <X />
@@ -606,6 +622,8 @@ function App() {
               <Menu />
             )}
           </button>
+
+          {/* LOGO */}
 
           <div
             className="wordmark"
@@ -622,6 +640,8 @@ function App() {
             </span>
           </div>
 
+          {/* ================= NAVIGATION ================= */}
+
           <nav
             className={`navlinks ${
               menuOpen
@@ -629,6 +649,7 @@ function App() {
                 : ""
             }`}
           >
+
             {[
               "New In",
               "Collections",
@@ -641,21 +662,15 @@ function App() {
               <button
                 key={item}
                 onClick={() => {
+
                   if (
-                    item ===
-                      "New In" ||
-                    item ===
-                      "Collections" ||
-                    item ===
-                      "Sale"
+                    item === "New In" ||
+                    item === "Collections" ||
+                    item === "Sale"
                   ) {
-                    setCategory(
-                      "All"
-                    );
+                    setCategory("All");
                   } else {
-                    setCategory(
-                      item
-                    );
+                    setCategory(item);
                   }
 
                   nav("shop");
@@ -664,31 +679,83 @@ function App() {
                 {item}
               </button>
             ))}
+
+            {/* MOBILE ACCOUNT SECTION */}
+
+            <div className="mobile-menu-divider" />
+
+            <div className="mobile-menu-account">
+
+              <p>ACCOUNT</p>
+
+              {/* MY ORDERS */}
+
+              <button
+                className="mobile-menu-action"
+                onClick={() =>
+                  nav("orders")
+                }
+              >
+                <ShoppingBag size={17} />
+
+                <span>
+                  My Orders
+                </span>
+
+                <ArrowRight size={16} />
+              </button>
+
+              {/* ADMIN */}
+
+              <button
+                className="mobile-menu-action admin"
+                onClick={() =>
+                  nav("admin")
+                }
+              >
+                <span className="admin-icon">
+                  ✦
+                </span>
+
+                <span>
+                  Admin Dashboard
+                </span>
+
+                <ArrowRight size={16} />
+              </button>
+
+            </div>
+
           </nav>
 
-          {/* MY ORDERS */}
+          {/* ================= DESKTOP BUTTONS ================= */}
 
-          <button
-            className="admin-button"
-            onClick={() =>
-              nav("orders")
-            }
-          >
-            My Orders
-          </button>
+          <div className="desktop-account-actions">
 
-          {/* ADMIN */}
+            <button
+              className="admin-button"
+              onClick={() =>
+                nav("orders")
+              }
+            >
+              My Orders
+            </button>
 
-          <button
-            className="admin-button"
-            onClick={() =>
-              nav("admin")
-            }
-          >
-            Admin
-          </button>
+            <button
+              className="admin-button"
+              onClick={() =>
+                nav("admin")
+              }
+            >
+              Admin
+            </button>
+
+          </div>
+
+          {/* ================= ACTIONS ================= */}
 
           <div className="actions">
+
             <div className="searchbox">
               <Search size={17} />
 
@@ -703,29 +770,28 @@ function App() {
               />
             </div>
 
+            {/* WISHLIST */}
+
             <button
               className="icon-btn"
               onClick={() =>
-                nav(
-                  "wishlist"
-                )
+                nav("wishlist")
               }
             >
               <Heart
                 fill={
-                  wishlist.length >
-                  0
+                  wishlist.length > 0
                     ? "currentColor"
                     : "none"
                 }
               />
 
               <b>
-                {
-                  wishlist.length
-                }
+                {wishlist.length}
               </b>
             </button>
+
+            {/* CART */}
 
             <button
               className="icon-btn"
@@ -736,12 +802,12 @@ function App() {
               <ShoppingBag />
 
               <b>
-                {
-                  cartItemCount
-                }
+                {cartItemCount}
               </b>
             </button>
+
           </div>
+
         </div>
       </header>
 
@@ -750,20 +816,12 @@ function App() {
       {page === "home" && (
         <Home
           nav={nav}
-          setCategory={
-            setCategory
-          }
+          setCategory={setCategory}
           products={products}
-          openProduct={
-            openProduct
-          }
+          openProduct={openProduct}
           wishlist={wishlist}
-          toggleWishlist={
-            toggleWishlist
-          }
-          addToCart={
-            addToCart
-          }
+          toggleWishlist={toggleWishlist}
+          addToCart={addToCart}
         />
       )}
 
@@ -771,30 +829,14 @@ function App() {
 
       {page === "shop" && (
         <Shop
-          products={
-            filteredProducts
-          }
-          category={
-            category
-          }
-          setCategory={
-            setCategory
-          }
-          wishlist={
-            wishlist
-          }
-          toggleWishlist={
-            toggleWishlist
-          }
-          addToCart={
-            addToCart
-          }
-          loading={
-            loading
-          }
-          openProduct={
-            openProduct
-          }
+          products={filteredProducts}
+          category={category}
+          setCategory={setCategory}
+          wishlist={wishlist}
+          toggleWishlist={toggleWishlist}
+          addToCart={addToCart}
+          loading={loading}
+          openProduct={openProduct}
         />
       )}
 
@@ -803,24 +845,14 @@ function App() {
       {page === "product" &&
         selectedProduct && (
           <ProductDetails
-            product={
-              selectedProduct
-            }
+            product={selectedProduct}
             onBack={() =>
               nav("shop")
             }
-            addToCart={
-              addToCart
-            }
-            onBuyNow={
-              buyNow
-            }
-            wishlist={
-              wishlist
-            }
-            toggleWishlist={
-              toggleWishlist
-            }
+            addToCart={addToCart}
+            onBuyNow={buyNow}
+            wishlist={wishlist}
+            toggleWishlist={toggleWishlist}
           />
         )}
 
@@ -829,15 +861,9 @@ function App() {
       {page === "cart" && (
         <Cart
           cart={cart}
-          removeFromCart={
-            removeFromCart
-          }
-          updateQuantity={
-            updateQuantity
-          }
-          checkoutCart={
-            checkoutCart
-          }
+          removeFromCart={removeFromCart}
+          updateQuantity={updateQuantity}
+          checkoutCart={checkoutCart}
           nav={nav}
         />
       )}
@@ -846,16 +872,10 @@ function App() {
 
       {page === "checkout" && (
         <Checkout
-          items={
-            checkoutItems
-          }
+          items={checkoutItems}
           nav={nav}
-          clearCart={
-            clearCart
-          }
-          customerId={
-            customerId
-          }
+          clearCart={clearCart}
+          customerId={customerId}
         />
       )}
 
@@ -863,9 +883,7 @@ function App() {
 
       {page === "orders" && (
         <MyOrders
-          customerId={
-            customerId
-          }
+          customerId={customerId}
           nav={nav}
         />
       )}
@@ -879,30 +897,21 @@ function App() {
               wishlist.some(
                 (id) =>
                   String(id) ===
-                  getProductId(
-                    product
-                  )
+                  getProductId(product)
               )
           )}
           nav={nav}
-          wishlist={
-            wishlist
-          }
-          toggleWishlist={
-            toggleWishlist
-          }
-          addToCart={
-            addToCart
-          }
-          openProduct={
-            openProduct
-          }
+          wishlist={wishlist}
+          toggleWishlist={toggleWishlist}
+          addToCart={addToCart}
+          openProduct={openProduct}
         />
       )}
 
       {/* ================= FOOTER ================= */}
 
       <footer>
+
         <div className="footer-brand">
           IRA{" "}
           <span>
@@ -916,6 +925,7 @@ function App() {
         </p>
 
         <div className="footer-links">
+
           <button>
             About
           </button>
@@ -931,9 +941,11 @@ function App() {
           <button>
             Contact
           </button>
+
         </div>
 
         <div className="footer-bottom">
+
           <span>
             © 2026 IRA THE LABEL
           </span>
@@ -945,7 +957,9 @@ function App() {
           >
             Owner Dashboard
           </button>
+
         </div>
+
       </footer>
     </>
   );
@@ -966,8 +980,11 @@ function Home({
 }) {
   return (
     <main>
+
       <section className="hero">
+
         <div className="hero-copy">
+
           <p className="eyebrow">
             THE EVERYDAY EDIT
           </p>
@@ -975,6 +992,7 @@ function Home({
           <h1>
             Made for your
             <br />
+
             <i>
               everyday.
             </i>
@@ -982,10 +1000,9 @@ function Home({
 
           <p className="hero-text">
             Light, breezy
-            silhouettes
-            designed to feel
-            effortless from
-            morning to evening.
+            silhouettes designed to feel
+            effortless from morning
+            to evening.
           </p>
 
           <button
@@ -994,59 +1011,57 @@ function Home({
               nav("shop")
             }
           >
-            Explore the
-            collection
-            <ArrowRight
-              size={16}
-            />
+            Explore the collection
+
+            <ArrowRight size={16} />
           </button>
+
         </div>
 
         <div className="hero-art">
+
           <img
             src="/IRA-THE-LABEL/logo.png"
             alt="IRA THE LABEL"
             className="hero-logo"
           />
+
         </div>
+
       </section>
 
       <section className="marquee">
-        <span>
-          NEW ARRIVALS
-        </span>
 
+        <span>NEW ARRIVALS</span>
         <span>•</span>
 
-        <span>
-          EVERYDAY WEAR
-        </span>
-
+        <span>EVERYDAY WEAR</span>
         <span>•</span>
 
-        <span>
-          IRA THE LABEL
-        </span>
-
+        <span>IRA THE LABEL</span>
         <span>•</span>
 
-        <span>
-          NEW ARRIVALS
-        </span>
+        <span>NEW ARRIVALS</span>
+
       </section>
 
+      {/* SHOP BY MOOD */}
+
       <section className="section">
+
         <div className="section-head">
+
           <div>
+
             <p className="eyebrow">
               SHOP BY MOOD
             </p>
 
             <h2>
-              Find your
-              everyday
+              Find your everyday
               favourite.
             </h2>
+
           </div>
 
           <button
@@ -1056,55 +1071,60 @@ function Home({
             }
           >
             View all
-            <ArrowRight
-              size={15}
-            />
+
+            <ArrowRight size={15} />
           </button>
+
         </div>
 
         <div className="category-grid">
+
           {[
             ["Kurtis", "rose"],
             ["Suits", "green"],
             ["Sets", "sky"],
-            [
-              "Dresses",
-              "lavender",
-            ],
+            ["Dresses", "lavender"],
           ].map(
             ([name, tone]) => (
               <button
                 className="category-card"
                 key={name}
                 onClick={() => {
-                  setCategory(
-                    name
-                  );
+                  setCategory(name);
                   nav("shop");
                 }}
               >
+
                 <ProductVisual
                   tone={tone}
                 />
 
                 <div>
+
                   <span>
                     {name}
                   </span>
 
-                  <ArrowRight
-                    size={15}
-                  />
+                  <ArrowRight size={15} />
+
                 </div>
+
               </button>
             )
           )}
+
         </div>
+
       </section>
 
+      {/* NEW ARRIVALS */}
+
       <section className="section">
+
         <div className="section-head">
+
           <div>
+
             <p className="eyebrow">
               JUST IN
             </p>
@@ -1112,6 +1132,7 @@ function Home({
             <h2>
               New arrivals.
             </h2>
+
           </div>
 
           <button
@@ -1121,39 +1142,31 @@ function Home({
             }
           >
             Shop all
-            <ArrowRight
-              size={15}
-            />
+
+            <ArrowRight size={15} />
           </button>
+
         </div>
 
         <div className="product-grid">
+
           {products
             .slice(0, 4)
-            .map(
-              (product) => (
-                <ProductCard
-                  key={getProductId(
-                    product
-                  )}
-                  p={product}
-                  wishlist={
-                    wishlist
-                  }
-                  toggleWish={
-                    toggleWishlist
-                  }
-                  addToCart={
-                    addToCart
-                  }
-                  openProduct={
-                    openProduct
-                  }
-                />
-              )
-            )}
+            .map((product) => (
+              <ProductCard
+                key={getProductId(product)}
+                p={product}
+                wishlist={wishlist}
+                toggleWish={toggleWishlist}
+                addToCart={addToCart}
+                openProduct={openProduct}
+              />
+            ))}
+
         </div>
+
       </section>
+
     </main>
   );
 }
@@ -1174,106 +1187,93 @@ function Shop({
 }) {
   return (
     <main className="shop-page">
+
       <div className="shop-heading">
+
         <p className="eyebrow">
           IRA THE LABEL
         </p>
 
         <h1>
-          Shop the
-          collection.
+          Shop the collection.
         </h1>
 
         <p>
           Everyday pieces,
-          designed to be
-          lived in.
+          designed to be lived in.
         </p>
+
       </div>
 
       <div className="shop-tools">
+
         <div className="chips">
-          {categories.map(
-            (item) => (
-              <button
-                className={
-                  category === item
-                    ? "active"
-                    : ""
-                }
-                onClick={() =>
-                  setCategory(
-                    item
-                  )
-                }
-                key={item}
-              >
-                {item}
-              </button>
-            )
-          )}
+
+          {categories.map((item) => (
+            <button
+              className={
+                category === item
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                setCategory(item)
+              }
+              key={item}
+            >
+              {item}
+            </button>
+          ))}
+
         </div>
 
         <button className="filter">
-          <SlidersHorizontal
-            size={16}
-          />
+
+          <SlidersHorizontal size={16} />
+
           Filters
-          <ChevronDown
-            size={15}
-          />
+
+          <ChevronDown size={15} />
+
         </button>
+
       </div>
 
       {loading ? (
         <p
           style={{
-            textAlign:
-              "center",
+            textAlign: "center",
             padding: "40px",
           }}
         >
-          Loading
-          products...
+          Loading products...
         </p>
-      ) : products.length ===
-        0 ? (
+      ) : products.length === 0 ? (
         <p
           style={{
-            textAlign:
-              "center",
+            textAlign: "center",
             padding: "40px",
           }}
         >
-          No products
-          found.
+          No products found.
         </p>
       ) : (
         <div className="product-grid large">
-          {products.map(
-            (product) => (
-              <ProductCard
-                key={getProductId(
-                  product
-                )}
-                p={product}
-                wishlist={
-                  wishlist
-                }
-                toggleWish={
-                  toggleWishlist
-                }
-                addToCart={
-                  addToCart
-                }
-                openProduct={
-                  openProduct
-                }
-              />
-            )
-          )}
+
+          {products.map((product) => (
+            <ProductCard
+              key={getProductId(product)}
+              p={product}
+              wishlist={wishlist}
+              toggleWish={toggleWishlist}
+              addToCart={addToCart}
+              openProduct={openProduct}
+            />
+          ))}
+
         </div>
       )}
+
     </main>
   );
 }
@@ -1295,8 +1295,7 @@ function ProductCard({
   const liked =
     wishlist.some(
       (id) =>
-        String(id) ===
-        productId
+        String(id) === productId
     );
 
   const image =
@@ -1307,16 +1306,17 @@ function ProductCard({
 
   return (
     <article className="product-card">
+
       <div
         className="product-media"
         style={{
-          cursor:
-            "pointer",
+          cursor: "pointer",
         }}
         onClick={() =>
           openProduct(p)
         }
       >
+
         {p.tag && (
           <span className="tag">
             {p.tag}
@@ -1326,14 +1326,12 @@ function ProductCard({
         <button
           type="button"
           className="wish"
-          onClick={(
-            event
-          ) => {
+          onClick={(event) => {
+
             event.stopPropagation();
 
-            toggleWish(
-              productId
-            );
+            toggleWish(productId);
+
           }}
         >
           <Heart
@@ -1347,8 +1345,7 @@ function ProductCard({
 
         <ProductVisual
           tone={
-            p.tone ||
-            "rose"
+            p.tone || "rose"
           }
           image={image}
           name={p.name}
@@ -1357,30 +1354,28 @@ function ProductCard({
         <button
           type="button"
           className="quick-add"
-          onClick={(
-            event
-          ) => {
+          onClick={(event) => {
+
             event.stopPropagation();
 
-            addToCart(
-              p,
-              1
-            );
+            addToCart(p, 1);
+
           }}
         >
           Add to bag
         </button>
+
       </div>
 
       <div className="product-info">
+
         <p>
           {p.category}
         </p>
 
         <h3
           style={{
-            cursor:
-              "pointer",
+            cursor: "pointer",
           }}
           onClick={() =>
             openProduct(p)
@@ -1390,23 +1385,21 @@ function ProductCard({
         </h3>
 
         <div>
+
           <strong>
-            {money(
-              discountedPrice
-            )}
+            {money(discountedPrice)}
           </strong>
 
-          {Number(
-            p.discount
-          ) > 0 && (
+          {Number(p.discount) > 0 && (
             <del>
-              {money(
-                p.price
-              )}
+              {money(p.price)}
             </del>
           )}
+
         </div>
+
       </div>
+
     </article>
   );
 }
@@ -1425,21 +1418,18 @@ function Cart({
   const total =
     cart.reduce(
       (sum, product) => {
+
         const price =
-          getDiscountedPrice(
-            product
-          );
+          getDiscountedPrice(product);
 
         const quantity =
           Number(
-            product.quantity ||
-              1
+            product.quantity || 1
           );
 
         return (
           sum +
-          price *
-            quantity
+          price * quantity
         );
       },
       0
@@ -1450,39 +1440,35 @@ function Cart({
       (sum, product) =>
         sum +
         Number(
-          product.quantity ||
-            1
+          product.quantity || 1
         ),
       0
     );
 
   return (
     <main className="simple-page">
+
       <p className="eyebrow">
         YOUR BAG
       </p>
 
       <h1>
-        Your shopping
-        bag.
+        Your shopping bag.
       </h1>
 
-      {cart.length ===
-      0 ? (
+      {cart.length === 0 ? (
+
         <div className="empty-state">
-          <ShoppingBag
-            size={34}
-          />
+
+          <ShoppingBag size={34} />
 
           <h3>
-            Your bag is
-            empty
+            Your bag is empty
           </h3>
 
           <p>
-            Add something
-            you love from
-            the collection.
+            Add something you love
+            from the collection.
           </p>
 
           <button
@@ -1493,188 +1479,175 @@ function Cart({
           >
             Shop now
           </button>
+
         </div>
+
       ) : (
+
         <div className="cart-layout">
+
           <div>
-            {cart.map(
-              (product) => {
-                const productId =
-                  getProductId(
-                    product
-                  );
 
-                const image =
-                  getProductImage(
-                    product
-                  );
+            {cart.map((product) => {
 
-                const quantity =
-                  Number(
-                    product.quantity ||
-                      1
-                  );
+              const productId =
+                getProductId(product);
 
-                const price =
-                  getDiscountedPrice(
-                    product
-                  );
+              const image =
+                getProductImage(product);
 
-                return (
-                  <div
-                    className="cart-item"
-                    key={
-                      productId
+              const quantity =
+                Number(
+                  product.quantity || 1
+                );
+
+              const price =
+                getDiscountedPrice(product);
+
+              return (
+                <div
+                  className="cart-item"
+                  key={productId}
+                >
+
+                  <ProductVisual
+                    tone={
+                      product.tone ||
+                      "rose"
                     }
-                  >
-                    <ProductVisual
-                      tone={
-                        product.tone ||
-                        "rose"
-                      }
-                      image={
-                        image
-                      }
-                      name={
-                        product.name
-                      }
-                    />
+                    image={image}
+                    name={product.name}
+                  />
 
-                    <div className="cart-item-info">
-                      <h3>
-                        {
-                          product.name
-                        }
-                      </h3>
+                  <div className="cart-item-info">
 
-                      <p>
-                        {
-                          product.category
-                        }
-                      </p>
+                    <h3>
+                      {product.name}
+                    </h3>
 
-                      <strong>
-                        {money(
-                          price
-                        )}
-                      </strong>
+                    <p>
+                      {product.category}
+                    </p>
 
-                      <div className="quantity-controls">
-                        <button
-                          onClick={() =>
-                            updateQuantity(
-                              productId,
-                              -1
-                            )
-                          }
-                        >
-                          −
-                        </button>
+                    <strong>
+                      {money(price)}
+                    </strong>
 
-                        <span>
-                          {
-                            quantity
-                          }
-                        </span>
-
-                        <button
-                          onClick={() =>
-                            updateQuantity(
-                              productId,
-                              1
-                            )
-                          }
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="cart-item-right">
-                      <strong>
-                        {money(
-                          price *
-                            quantity
-                        )}
-                      </strong>
+                    <div className="quantity-controls">
 
                       <button
-                        className="icon-btn"
                         onClick={() =>
-                          removeFromCart(
-                            productId
+                          updateQuantity(
+                            productId,
+                            -1
                           )
                         }
                       >
-                        <Trash2
-                          size={17}
-                        />
+                        −
                       </button>
+
+                      <span>
+                        {quantity}
+                      </span>
+
+                      <button
+                        onClick={() =>
+                          updateQuantity(
+                            productId,
+                            1
+                          )
+                        }
+                      >
+                        +
+                      </button>
+
                     </div>
+
                   </div>
-                );
-              }
-            )}
+
+                  <div className="cart-item-right">
+
+                    <strong>
+                      {money(
+                        price * quantity
+                      )}
+                    </strong>
+
+                    <button
+                      className="icon-btn"
+                      onClick={() =>
+                        removeFromCart(
+                          productId
+                        )
+                      }
+                    >
+                      <Trash2 size={17} />
+                    </button>
+
+                  </div>
+
+                </div>
+              );
+            })}
+
           </div>
 
           <aside className="summary">
+
             <h3>
               Order summary
             </h3>
 
             <div>
+
               <span>
-                Items (
-                {
-                  totalItems
-                }
-                )
+                Items ({totalItems})
               </span>
 
               <strong>
-                {money(
-                  total
-                )}
+                {money(total)}
               </strong>
+
             </div>
 
             <div>
+
               <span>
                 Shipping
               </span>
 
               <span>
-                Calculated at
-                checkout
+                Calculated at checkout
               </span>
+
             </div>
 
             <hr />
 
             <div className="total">
+
               <span>
                 Total
               </span>
 
               <strong>
-                {money(
-                  total
-                )}
+                {money(total)}
               </strong>
+
             </div>
 
             <button
               className="primary full"
-              onClick={
-                checkoutCart
-              }
+              onClick={checkoutCart}
             >
-              Proceed to
-              checkout
+              Proceed to checkout
             </button>
+
           </aside>
+
         </div>
       )}
+
     </main>
   );
 }
@@ -1693,6 +1666,7 @@ function Wishlist({
 }) {
   return (
     <main className="simple-page">
+
       <p className="eyebrow">
         SAVED FOR LATER
       </p>
@@ -1702,18 +1676,18 @@ function Wishlist({
       </h1>
 
       {!products.length ? (
+
         <div className="empty-state">
+
           <Heart size={34} />
 
           <h3>
-            Nothing saved
-            yet
+            Nothing saved yet
           </h3>
 
           <p>
-            Tap the heart on
-            any piece you
-            love.
+            Tap the heart on any piece
+            you love.
           </p>
 
           <button
@@ -1724,33 +1698,27 @@ function Wishlist({
           >
             Explore pieces
           </button>
+
         </div>
+
       ) : (
+
         <div className="product-grid">
-          {products.map(
-            (product) => (
-              <ProductCard
-                key={getProductId(
-                  product
-                )}
-                p={product}
-                wishlist={
-                  wishlist
-                }
-                toggleWish={
-                  toggleWishlist
-                }
-                addToCart={
-                  addToCart
-                }
-                openProduct={
-                  openProduct
-                }
-              />
-            )
-          )}
+
+          {products.map((product) => (
+            <ProductCard
+              key={getProductId(product)}
+              p={product}
+              wishlist={wishlist}
+              toggleWish={toggleWishlist}
+              addToCart={addToCart}
+              openProduct={openProduct}
+            />
+          ))}
+
         </div>
       )}
+
     </main>
   );
 }
@@ -1760,9 +1728,7 @@ function Wishlist({
 // ========================================================
 
 createRoot(
-  document.getElementById(
-    "root"
-  )
+  document.getElementById("root")
 ).render(
   <React.StrictMode>
     <App />

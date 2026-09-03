@@ -10462,3 +10462,415 @@ footer {
   }
 
 }
+/* =========================================================
+   PROFESSIONAL MOBILE SIDEBAR NAVIGATION
+========================================================= */
+
+.mobile-menu-divider,
+.mobile-menu-account {
+  display: none;
+}
+
+
+/* =========================================================
+   MOBILE + TABLET
+========================================================= */
+
+@media (max-width: 1000px) {
+
+  /* Hide normal navigation */
+
+  .navlinks {
+    display: none;
+  }
+
+
+  /* =========================
+     SIDEBAR OVERLAY
+  ========================= */
+
+  .navlinks.open {
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: min(340px, 88vw);
+    height: 100vh;
+
+    z-index: 999;
+
+    padding: 95px 24px 30px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: nowrap;
+
+    gap: 4px;
+
+    overflow-y: auto;
+
+    background:
+      linear-gradient(
+        145deg,
+        #fcf8f5 0%,
+        #f7eee9 100%
+      );
+
+    border-right: 1px solid #e4dad2;
+
+    box-shadow:
+      20px 0 60px
+      rgba(41, 37, 35, 0.16);
+
+    animation:
+      iraSidebarSlide 0.35s
+      cubic-bezier(
+        0.22,
+        1,
+        0.36,
+        1
+      )
+      forwards;
+  }
+
+
+  /* =========================
+     NAVIGATION BUTTONS
+  ========================= */
+
+  .navlinks.open > button {
+    width: 100%;
+
+    padding: 14px 15px;
+
+    display: flex;
+    align-items: center;
+
+    border: 0;
+    border-radius: 10px;
+
+    background: transparent;
+
+    color: #292523;
+
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+
+    text-align: left;
+
+    transition:
+      background 0.2s ease,
+      transform 0.2s ease,
+      color 0.2s ease;
+  }
+
+
+  .navlinks.open > button:hover {
+    background:
+      rgba(
+        255,
+        255,
+        255,
+        0.72
+      );
+
+    color: #92725b;
+
+    transform:
+      translateX(4px);
+  }
+
+
+  /* =========================
+     ACCOUNT DIVIDER
+  ========================= */
+
+  .mobile-menu-divider {
+    width: 100%;
+    height: 1px;
+
+    display: block;
+
+    margin: 20px 0 16px;
+
+    background:
+      linear-gradient(
+        to right,
+        transparent,
+        #d9cdc5 15%,
+        #d9cdc5 85%,
+        transparent
+      );
+  }
+
+
+  /* =========================
+     ACCOUNT SECTION
+  ========================= */
+
+  .mobile-menu-account {
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+  }
+
+
+  .mobile-menu-account p {
+    margin: 0 0 7px 12px;
+
+    color: #92725b;
+
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+  }
+
+
+  /* =========================
+     ACCOUNT BUTTONS
+  ========================= */
+
+  .mobile-menu-action {
+    width: 100%;
+
+    min-height: 54px;
+
+    padding: 0 14px;
+
+    display: flex;
+    align-items: center;
+
+    border: 1px solid transparent;
+    border-radius: 12px;
+
+    background:
+      rgba(
+        255,
+        255,
+        255,
+        0.58
+      );
+
+    color: #292523;
+
+    transition:
+      all 0.22s ease;
+  }
+
+
+  .mobile-menu-action svg:first-child {
+    flex-shrink: 0;
+
+    color: #92725b;
+  }
+
+
+  .mobile-menu-action span {
+    margin-left: 12px;
+
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+
+  .mobile-menu-action svg:last-child {
+    margin-left: auto;
+
+    color: #a79e98;
+
+    transition:
+      transform 0.2s ease;
+  }
+
+
+  .mobile-menu-action:hover {
+    border-color: #dfd1c8;
+
+    background: #ffffff;
+
+    transform:
+      translateY(-1px);
+
+    box-shadow:
+      0 8px 20px
+      rgba(
+        80,
+        60,
+        50,
+        0.07
+      );
+  }
+
+
+  .mobile-menu-action:hover svg:last-child {
+    transform:
+      translateX(3px);
+  }
+
+
+  /* =========================
+     ADMIN SPECIAL BUTTON
+  ========================= */
+
+  .mobile-menu-action.admin {
+    border-color:
+      rgba(
+        146,
+        114,
+        91,
+        0.2
+      );
+
+    background:
+      linear-gradient(
+        135deg,
+        #292523,
+        #453f3b
+      );
+
+    color: #ffffff;
+
+    box-shadow:
+      0 8px 22px
+      rgba(
+        41,
+        37,
+        35,
+        0.16
+      );
+  }
+
+
+  .mobile-menu-action.admin:hover {
+    background:
+      linear-gradient(
+        135deg,
+        #3b3430,
+        #5a4e47
+      );
+
+    transform:
+      translateY(-2px);
+  }
+
+
+  .mobile-menu-action.admin svg:last-child {
+    color:
+      rgba(
+        255,
+        255,
+        255,
+        0.7
+      );
+  }
+
+
+  .admin-icon {
+    width: 22px;
+    height: 22px;
+
+    margin-left: 0 !important;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 7px;
+
+    background:
+      rgba(
+        255,
+        255,
+        255,
+        0.13
+      );
+
+    color: #ead4cf;
+
+    font-size: 13px;
+  }
+
+
+  /* =========================
+     HIDE DESKTOP BUTTONS
+  ========================= */
+
+  .admin-button {
+    display: none;
+  }
+
+
+  /* =========================
+     MOBILE MENU BUTTON
+  ========================= */
+
+  .mobile-only {
+    position: relative;
+    z-index: 1000;
+
+    display: flex;
+  }
+
+
+  /* =========================
+     HEADER IMPROVEMENT
+  ========================= */
+
+  .navrow {
+    position: relative;
+    z-index: 1000;
+  }
+}
+
+
+/* =========================================================
+   MOBILE SPECIFIC
+========================================================= */
+
+@media (max-width: 650px) {
+
+  .navlinks.open {
+    width: min(330px, 90vw);
+
+    padding:
+      90px
+      18px
+      25px;
+  }
+
+
+  .navlinks.open > button {
+    padding: 14px 13px;
+
+    font-size: 13px;
+  }
+
+
+  .mobile-menu-action {
+    min-height: 52px;
+  }
+}
+
+
+/* =========================================================
+   SIDEBAR ANIMATION
+========================================================= */
+
+@keyframes iraSidebarSlide {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateX(-100%);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateX(0);
+  }
+}
