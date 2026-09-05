@@ -27,6 +27,7 @@ import {
   CalendarDays,
   ChevronRight,
   LayoutDashboard,
+  Tag,
 } from "lucide-react";
 
 import "./styles.css";
@@ -36,6 +37,9 @@ const PRODUCTS_API_URL =
 
 const ORDERS_API_URL =
   "https://ira-the-label.onrender.com/api/orders";
+
+const FILTERS_API_URL =
+  "https://ira-the-label.onrender.com/api/filters";
 const PAYMENT_METHODS = ["COD", "UPI", "CARD"];
 
 const emptyProduct = {
@@ -112,6 +116,19 @@ export default function AdminPanel({ onBack }) {
 
   const [updatingOrder, setUpdatingOrder] =
     useState(null);
+
+  // =========================
+  // HOMEPAGE FILTERS
+  // =========================
+
+  const [filters, setFilters] = useState([]);
+  const [filtersLoading, setFiltersLoading] = useState(true);
+  const [showFilterForm, setShowFilterForm] = useState(false);
+  const [filterEditingId, setFilterEditingId] = useState(null);
+  const [filterSaving, setFilterSaving] = useState(false);
+  const [filterForm, setFilterForm] = useState({ name: "", image: "" });
+  const [filterPreview, setFilterPreview] = useState("");
+
 
   // =========================
   // MESSAGE
@@ -285,6 +302,99 @@ export default function AdminPanel({ onBack }) {
     }
   };
 
+
+  // =========================
+  // HOMEPAGE FILTER MANAGEMENT
+  // =========================
+
+  const loadFilters = async () => {
+    try {
+      setFiltersLoading(true);
+      const response = await fetch(FILTERS_API_URL, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Could not load filters (${response.status})`);
+      const data = await response.json();
+      setFilters(Array.isArray(data) ? data : Array.isArray(data.filters) ? data.filters : []);
+    } catch (error) {
+      console.error("Load filters error:", error);
+      setFilters([]);
+    } finally {
+      setFiltersLoading(false);
+    }
+  };
+
+  const resetFilterForm = () => {
+    setFilterEditingId(null);
+    setFilterForm({ name: "", image: "" });
+    setFilterPreview("");
+  };
+
+  const closeFilterModal = () => {
+    setShowFilterForm(false);
+    resetFilterForm();
+  };
+
+  const openAddFilterForm = () => {
+    resetFilterForm();
+    setShowFilterForm(true);
+  };
+
+  const openEditFilterForm = (filter) => {
+    setFilterEditingId(filter._id);
+    setFilterForm({ name: filter.name || "", image: filter.image || "" });
+    setFilterPreview(getImageUrl(filter.image || ""));
+    setShowFilterForm(true);
+  };
+
+  const handleFilterImageChange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const image = await fileToBase64(file);
+      setFilterForm((current) => ({ ...current, image }));
+      setFilterPreview(image);
+    } catch (error) {
+      console.error("Filter image error:", error);
+      showMessage("Could not process the filter image.", "error");
+    }
+    event.target.value = "";
+  };
+
+  const saveFilter = async (event) => {
+    event.preventDefault();
+    if (!filterForm.name.trim()) { showMessage("Please enter a filter name.", "error"); return; }
+    if (!filterForm.image) { showMessage("Please upload a filter image.", "error"); return; }
+    try {
+      setFilterSaving(true);
+      const response = await fetch(filterEditingId ? `${FILTERS_API_URL}/${filterEditingId}` : FILTERS_API_URL, {
+        method: filterEditingId ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: filterForm.name.trim(), image: filterForm.image }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Could not save filter");
+      showMessage(filterEditingId ? "Homepage filter updated successfully!" : "Homepage filter added successfully!");
+      closeFilterModal();
+      await loadFilters();
+    } catch (error) {
+      showMessage(error.message || "Could not save homepage filter.", "error");
+    } finally {
+      setFilterSaving(false);
+    }
+  };
+
+  const deleteFilter = async (filterId, filterName) => {
+    if (!window.confirm(`Delete "${filterName}"? This will permanently remove this filter from the website.`)) return;
+    try {
+      const response = await fetch(`${FILTERS_API_URL}/${filterId}`, { method: "DELETE" });
+      let data = {}; try { data = await response.json(); } catch {}
+      if (!response.ok) throw new Error(data.message || "Could not delete filter");
+      setFilters((current) => current.filter((filter) => String(filter._id) !== String(filterId)));
+      showMessage(data.message || "Homepage filter deleted permanently!");
+    } catch (error) {
+      showMessage(error.message || "Could not delete homepage filter.", "error");
+    }
+  };
+
   // =========================
   // LOAD DASHBOARD
   // =========================
@@ -295,6 +405,7 @@ export default function AdminPanel({ onBack }) {
     await Promise.all([
       loadProducts(),
       loadOrders(),
+      loadFilters(),
     ]);
   };
 
@@ -1783,6 +1894,51 @@ export default function AdminPanel({ onBack }) {
 
         </section>
 
+
+        {/* ================= HOMEPAGE FILTERS ================= */}
+
+        <section className="dashboard-section filters-section">
+          <div className="section-header">
+            <div>
+              <span className="section-eyebrow">HOMEPAGE CUSTOMIZATION</span>
+              <h2>Homepage Filters</h2>
+              <p>Add, edit or remove the visual filters shown on your website.</p>
+            </div>
+            <button className="add-product-button small-add" type="button" onClick={openAddFilterForm}>
+              <Plus size={17} /> Add Filter
+            </button>
+          </div>
+
+          {filtersLoading ? (
+            <div className="admin-loading"><Loader2 className="loading-spinner" size={25} /> Loading homepage filters...</div>
+          ) : filters.length === 0 ? (
+            <div className="admin-empty">
+              <Tag size={38} />
+              <h3>No homepage filters yet</h3>
+              <p>Create filters such as Kurtis, Suits or Dresses with your own custom images.</p>
+              <button className="add-product-button" type="button" onClick={openAddFilterForm}><Plus size={18} /> Add First Filter</button>
+            </div>
+          ) : (
+            <div className="admin-filter-grid">
+              {filters.map((filter) => (
+                <div className="admin-filter-card" key={filter._id}>
+                  <div className="admin-filter-image">
+                    {filter.image ? <img src={getImageUrl(filter.image)} alt={filter.name} /> : <div className="admin-no-image">IRA</div>}
+                  </div>
+                  <div className="admin-filter-info">
+                    <h3>{filter.name}</h3>
+                    <span>Homepage Filter</span>
+                    <div className="admin-filter-actions">
+                      <button className="edit-product" type="button" onClick={() => openEditFilterForm(filter)}><Edit3 size={16} /> Edit</button>
+                      <button className="delete-product" type="button" title="Delete filter permanently" onClick={() => deleteFilter(filter._id, filter.name)}><Trash2 size={17} /></button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
       </main>
 
       {/* ================= ORDER DETAILS MODAL ================= */}
@@ -2501,6 +2657,56 @@ export default function AdminPanel({ onBack }) {
 
           </div>
 
+        </div>
+      )}
+
+
+      {/* ================= HOMEPAGE FILTER MODAL ================= */}
+
+      {showFilterForm && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal filter-modal">
+            <div className="admin-modal-head">
+              <div>
+                <span className="section-eyebrow">HOMEPAGE CUSTOMIZATION</span>
+                <h2>{filterEditingId ? "Edit Homepage Filter" : "Add Homepage Filter"}</h2>
+              </div>
+              <button className="modal-close" type="button" onClick={closeFilterModal}><X size={20} /></button>
+            </div>
+
+            <form onSubmit={saveFilter}>
+              <div className="admin-form-grid">
+                <div className="form-field full-field">
+                  <label>Filter Name *</label>
+                  <input value={filterForm.name} onChange={(event) => setFilterForm((current) => ({ ...current, name: event.target.value }))} placeholder="e.g. Kurtis" />
+                </div>
+
+                <div className="form-field full-field">
+                  <label>Filter Image *</label>
+                  <label className="image-upload-box">
+                    <ImagePlus size={25} />
+                    <span>Click to upload filter image</span>
+                    <small>This image will appear on the homepage filter section</small>
+                    <input type="file" accept="image/*" onChange={handleFilterImageChange} hidden />
+                  </label>
+
+                  {filterPreview && (
+                    <div className="filter-image-preview">
+                      <img src={filterPreview} alt="Filter preview" />
+                      <button type="button" onClick={() => { setFilterPreview(""); setFilterForm((current) => ({ ...current, image: "" })); }} title="Remove image"><X size={16} /></button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="admin-form-actions">
+                <button type="button" className="cancel-button" onClick={closeFilterModal}>Cancel</button>
+                <button type="submit" className="add-product-button" disabled={filterSaving}>
+                  {filterSaving ? <><Loader2 className="loading-spinner" size={17} /> Saving...</> : filterEditingId ? "Update Filter" : "Add Filter"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

@@ -86,10 +86,6 @@ const productSchema = new mongoose.Schema(
       default: [],
     },
 
-    // ========================================
-    // PAYMENT METHODS
-    // ========================================
-
     paymentMethods: {
       type: [String],
       enum: ["COD", "UPI", "CARD"],
@@ -101,7 +97,47 @@ const productSchema = new mongoose.Schema(
   }
 );
 
-const Product = mongoose.model("Product", productSchema);
+const Product = mongoose.model(
+  "Product",
+  productSchema
+);
+
+// ========================================
+// FILTER / CATEGORY SCHEMA
+// ========================================
+
+const filterSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    image: {
+      type: String,
+      default: "",
+    },
+
+    order: {
+      type: Number,
+      default: 0,
+    },
+
+    active: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const Filter = mongoose.model(
+  "Filter",
+  filterSchema
+);
 
 // ========================================
 // ORDER SCHEMA
@@ -109,7 +145,6 @@ const Product = mongoose.model("Product", productSchema);
 
 const orderSchema = new mongoose.Schema(
   {
-    // Unique browser/customer identifier
     customerId: {
       type: String,
       default: "",
@@ -249,7 +284,10 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-const Order = mongoose.model("Order", orderSchema);
+const Order = mongoose.model(
+  "Order",
+  orderSchema
+);
 
 // ========================================
 // HOME / TEST
@@ -263,290 +301,123 @@ app.get("/", (req, res) => {
 });
 
 // ========================================
-// PRODUCT ROUTES
+// FILTER ROUTES
 // ========================================
 
 // ========================================
-// GET ALL PRODUCTS
+// GET ALL FILTERS
 // ========================================
 
-app.get("/api/products", async (req, res) => {
+app.get("/api/filters", async (req, res) => {
   try {
-    const products = await Product.find().sort({
-      createdAt: -1,
+    const filters = await Filter.find({
+      active: true,
+    }).sort({
+      order: 1,
+      createdAt: 1,
     });
 
-    res.status(200).json(products);
+    res.status(200).json(filters);
   } catch (error) {
-    console.error("GET PRODUCTS ERROR:", error);
+    console.error(
+      "GET FILTERS ERROR:",
+      error
+    );
 
     res.status(500).json({
       success: false,
-      message: "Could not load products",
+      message: "Could not load filters",
     });
   }
 });
 
 // ========================================
-// GET SINGLE PRODUCT
+// GET ALL FILTERS FOR ADMIN
 // ========================================
 
-app.get("/api/products/:id", async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id);
+app.get(
+  "/api/admin/filters",
+  async (req, res) => {
+    try {
+      const filters = await Filter.find().sort({
+        order: 1,
+        createdAt: 1,
+      });
 
-    if (!product) {
-      return res.status(404).json({
+      res.status(200).json(filters);
+    } catch (error) {
+      console.error(
+        "GET ADMIN FILTERS ERROR:",
+        error
+      );
+
+      res.status(500).json({
         success: false,
-        message: "Product not found",
+        message: "Could not load filters",
       });
     }
-
-    res.status(200).json(product);
-  } catch (error) {
-    console.error("GET PRODUCT ERROR:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Could not load product",
-    });
   }
-});
+);
 
 // ========================================
-// ADD PRODUCT
+// ADD FILTER
 // ========================================
 
-app.post("/api/products/add", async (req, res) => {
+app.post("/api/filters", async (req, res) => {
   try {
     const {
       name,
-      description,
-      category,
-      price,
-      discount,
-      stock,
-      sizes,
-      colors,
-      images,
-      paymentMethods,
+      image,
+      order,
+      active,
     } = req.body;
-
-    // ----------------------------------------
-    // VALIDATION
-    // ----------------------------------------
 
     if (!name || !name.trim()) {
       return res.status(400).json({
         success: false,
-        message: "Product name is required",
+        message: "Filter name is required",
       });
     }
 
-    if (
-      price === undefined ||
-      price === null ||
-      price === ""
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Product price is required",
+    const existingFilter =
+      await Filter.findOne({
+        name: {
+          $regex: new RegExp(
+            `^${name.trim()}$`,
+            "i"
+          ),
+        },
       });
-    }
 
-    if (Number(price) < 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Product price cannot be negative",
-      });
-    }
-
-    // ----------------------------------------
-    // PAYMENT METHODS
-    // ----------------------------------------
-
-    const validPaymentMethods = Array.isArray(
-      paymentMethods
-    )
-      ? paymentMethods.filter((method) =>
-          ["COD", "UPI", "CARD"].includes(method)
-        )
-      : ["COD", "UPI", "CARD"];
-
-    if (validPaymentMethods.length === 0) {
+    if (existingFilter) {
       return res.status(400).json({
         success: false,
         message:
-          "At least one payment method must be selected",
+          "A filter with this name already exists",
       });
     }
 
-    // ----------------------------------------
-    // CREATE PRODUCT
-    // ----------------------------------------
-
-    const product = await Product.create({
+    const filter = await Filter.create({
       name: name.trim(),
-
-      description: description || "",
-
-      category: category || "Kurtis",
-
-      price: Number(price),
-
-      discount: Number(discount) || 0,
-
-      stock: Number(stock) || 0,
-
-      sizes: Array.isArray(sizes) ? sizes : [],
-
-      colors: Array.isArray(colors) ? colors : [],
-
-      images: Array.isArray(images) ? images : [],
-
-      paymentMethods: validPaymentMethods,
+      image: image || "",
+      order:
+        order !== undefined
+          ? Number(order)
+          : await Filter.countDocuments(),
+      active:
+        active !== undefined
+          ? Boolean(active)
+          : true,
     });
 
     res.status(201).json({
       success: true,
-      message: "Product added successfully",
-      product,
-    });
-  } catch (error) {
-    console.error("ADD PRODUCT ERROR:", error);
-
-    res.status(500).json({
-      success: false,
-      message:
-        error.message || "Could not add product",
-    });
-  }
-});
-
-// ========================================
-// UPDATE PRODUCT
-// ========================================
-
-app.put("/api/products/:id", async (req, res) => {
-  try {
-    const {
-      name,
-      description,
-      category,
-      price,
-      discount,
-      stock,
-      sizes,
-      colors,
-      images,
-      paymentMethods,
-    } = req.body;
-
-    // ----------------------------------------
-    // VALIDATION
-    // ----------------------------------------
-
-    if (!name || !name.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: "Product name is required",
-      });
-    }
-
-    if (
-      price === undefined ||
-      price === null ||
-      price === ""
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Product price is required",
-      });
-    }
-
-    if (Number(price) < 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Product price cannot be negative",
-      });
-    }
-
-    // ----------------------------------------
-    // PAYMENT METHODS
-    // ----------------------------------------
-
-    const validPaymentMethods = Array.isArray(
-      paymentMethods
-    )
-      ? paymentMethods.filter((method) =>
-          ["COD", "UPI", "CARD"].includes(method)
-        )
-      : ["COD", "UPI", "CARD"];
-
-    if (validPaymentMethods.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "At least one payment method must be selected",
-      });
-    }
-
-    // ----------------------------------------
-    // UPDATE PRODUCT
-    // ----------------------------------------
-
-    const product =
-      await Product.findByIdAndUpdate(
-        req.params.id,
-        {
-          name: name.trim(),
-
-          description: description || "",
-
-          category: category || "Kurtis",
-
-          price: Number(price),
-
-          discount: Number(discount) || 0,
-
-          stock: Number(stock) || 0,
-
-          sizes: Array.isArray(sizes)
-            ? sizes
-            : [],
-
-          colors: Array.isArray(colors)
-            ? colors
-            : [],
-
-          images: Array.isArray(images)
-            ? images
-            : [],
-
-          paymentMethods:
-            validPaymentMethods,
-        },
-        {
-          new: true,
-          runValidators: true,
-        }
-      );
-
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Product updated successfully",
-      product,
+      message: "Filter added successfully",
+      filter,
     });
   } catch (error) {
     console.error(
-      "UPDATE PRODUCT ERROR:",
+      "ADD FILTER ERROR:",
       error
     );
 
@@ -554,241 +425,697 @@ app.put("/api/products/:id", async (req, res) => {
       success: false,
       message:
         error.message ||
-        "Could not update product",
+        "Could not add filter",
     });
   }
 });
 
 // ========================================
-// DELETE PRODUCT
+// UPDATE FILTER
 // ========================================
 
-app.delete("/api/products/:id", async (req, res) => {
-  try {
-    const product =
-      await Product.findByIdAndDelete(
-        req.params.id
+app.put(
+  "/api/filters/:id",
+  async (req, res) => {
+    try {
+      const {
+        name,
+        image,
+        order,
+        active,
+      } = req.body;
+
+      if (!name || !name.trim()) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Filter name is required",
+        });
+      }
+
+      const duplicate =
+        await Filter.findOne({
+          name: {
+            $regex: new RegExp(
+              `^${name.trim()}$`,
+              "i"
+            ),
+          },
+
+          _id: {
+            $ne: req.params.id,
+          },
+        });
+
+      if (duplicate) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Another filter with this name already exists",
+        });
+      }
+
+      const filter =
+        await Filter.findByIdAndUpdate(
+          req.params.id,
+          {
+            name: name.trim(),
+            image: image || "",
+            order:
+              order !== undefined
+                ? Number(order)
+                : 0,
+            active:
+              active !== undefined
+                ? Boolean(active)
+                : true,
+          },
+          {
+            new: true,
+            runValidators: true,
+          }
+        );
+
+      if (!filter) {
+        return res.status(404).json({
+          success: false,
+          message: "Filter not found",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message:
+          "Filter updated successfully",
+        filter,
+      });
+    } catch (error) {
+      console.error(
+        "UPDATE FILTER ERROR:",
+        error
       );
 
-    if (!product) {
-      return res.status(404).json({
+      res.status(500).json({
         success: false,
-        message: "Product not found",
+        message:
+          error.message ||
+          "Could not update filter",
       });
     }
+  }
+);
 
-    res.status(200).json({
-      success: true,
-      message: "Product deleted successfully",
-    });
+// ========================================
+// DELETE FILTER PERMANENTLY
+// ========================================
+
+app.delete(
+  "/api/filters/:id",
+  async (req, res) => {
+    try {
+      const filter =
+        await Filter.findByIdAndDelete(
+          req.params.id
+        );
+
+      if (!filter) {
+        return res.status(404).json({
+          success: false,
+          message: "Filter not found",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message:
+          "Filter deleted permanently",
+      });
+    } catch (error) {
+      console.error(
+        "DELETE FILTER ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        message:
+          "Could not delete filter",
+      });
+    }
+  }
+);
+
+// ========================================
+// PRODUCT ROUTES
+// ========================================
+
+// GET ALL PRODUCTS
+
+app.get("/api/products", async (req, res) => {
+  try {
+    const products =
+      await Product.find().sort({
+        createdAt: -1,
+      });
+
+    res.status(200).json(products);
   } catch (error) {
     console.error(
-      "DELETE PRODUCT ERROR:",
+      "GET PRODUCTS ERROR:",
       error
     );
 
     res.status(500).json({
       success: false,
-      message: "Could not delete product",
+      message:
+        "Could not load products",
     });
   }
 });
+
+// GET SINGLE PRODUCT
+
+app.get(
+  "/api/products/:id",
+  async (req, res) => {
+    try {
+      const product =
+        await Product.findById(
+          req.params.id
+        );
+
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: "Product not found",
+        });
+      }
+
+      res.status(200).json(product);
+    } catch (error) {
+      console.error(
+        "GET PRODUCT ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        message:
+          "Could not load product",
+      });
+    }
+  }
+);
+
+// ADD PRODUCT
+
+app.post(
+  "/api/products/add",
+  async (req, res) => {
+    try {
+      const {
+        name,
+        description,
+        category,
+        price,
+        discount,
+        stock,
+        sizes,
+        colors,
+        images,
+        paymentMethods,
+      } = req.body;
+
+      if (!name || !name.trim()) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Product name is required",
+        });
+      }
+
+      if (
+        price === undefined ||
+        price === null ||
+        price === ""
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Product price is required",
+        });
+      }
+
+      if (Number(price) < 0) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Product price cannot be negative",
+        });
+      }
+
+      const validPaymentMethods =
+        Array.isArray(paymentMethods)
+          ? paymentMethods.filter(
+              (method) =>
+                [
+                  "COD",
+                  "UPI",
+                  "CARD",
+                ].includes(method)
+            )
+          : [
+              "COD",
+              "UPI",
+              "CARD",
+            ];
+
+      if (
+        validPaymentMethods.length === 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "At least one payment method must be selected",
+        });
+      }
+
+      const product =
+        await Product.create({
+          name: name.trim(),
+
+          description:
+            description || "",
+
+          category:
+            category || "Kurtis",
+
+          price: Number(price),
+
+          discount:
+            Number(discount) || 0,
+
+          stock:
+            Number(stock) || 0,
+
+          sizes:
+            Array.isArray(sizes)
+              ? sizes
+              : [],
+
+          colors:
+            Array.isArray(colors)
+              ? colors
+              : [],
+
+          images:
+            Array.isArray(images)
+              ? images
+              : [],
+
+          paymentMethods:
+            validPaymentMethods,
+        });
+
+      res.status(201).json({
+        success: true,
+        message:
+          "Product added successfully",
+        product,
+      });
+    } catch (error) {
+      console.error(
+        "ADD PRODUCT ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        message:
+          error.message ||
+          "Could not add product",
+      });
+    }
+  }
+);
+
+// UPDATE PRODUCT
+
+app.put(
+  "/api/products/:id",
+  async (req, res) => {
+    try {
+      const {
+        name,
+        description,
+        category,
+        price,
+        discount,
+        stock,
+        sizes,
+        colors,
+        images,
+        paymentMethods,
+      } = req.body;
+
+      if (!name || !name.trim()) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Product name is required",
+        });
+      }
+
+      if (
+        price === undefined ||
+        price === null ||
+        price === ""
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Product price is required",
+        });
+      }
+
+      if (Number(price) < 0) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Product price cannot be negative",
+        });
+      }
+
+      const validPaymentMethods =
+        Array.isArray(paymentMethods)
+          ? paymentMethods.filter(
+              (method) =>
+                [
+                  "COD",
+                  "UPI",
+                  "CARD",
+                ].includes(method)
+            )
+          : [
+              "COD",
+              "UPI",
+              "CARD",
+            ];
+
+      if (
+        validPaymentMethods.length === 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "At least one payment method must be selected",
+        });
+      }
+
+      const product =
+        await Product.findByIdAndUpdate(
+          req.params.id,
+          {
+            name: name.trim(),
+
+            description:
+              description || "",
+
+            category:
+              category || "Kurtis",
+
+            price: Number(price),
+
+            discount:
+              Number(discount) || 0,
+
+            stock:
+              Number(stock) || 0,
+
+            sizes:
+              Array.isArray(sizes)
+                ? sizes
+                : [],
+
+            colors:
+              Array.isArray(colors)
+                ? colors
+                : [],
+
+            images:
+              Array.isArray(images)
+                ? images
+                : [],
+
+            paymentMethods:
+              validPaymentMethods,
+          },
+          {
+            new: true,
+            runValidators: true,
+          }
+        );
+
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: "Product not found",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message:
+          "Product updated successfully",
+        product,
+      });
+    } catch (error) {
+      console.error(
+        "UPDATE PRODUCT ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        message:
+          error.message ||
+          "Could not update product",
+      });
+    }
+  }
+);
+
+// DELETE PRODUCT
+
+app.delete(
+  "/api/products/:id",
+  async (req, res) => {
+    try {
+      const product =
+        await Product.findByIdAndDelete(
+          req.params.id
+        );
+
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: "Product not found",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message:
+          "Product deleted successfully",
+      });
+    } catch (error) {
+      console.error(
+        "DELETE PRODUCT ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        message:
+          "Could not delete product",
+      });
+    }
+  }
+);
 
 // ========================================
 // ORDER ROUTES
 // ========================================
 
-// ========================================
 // CREATE ORDER
-// ========================================
 
-app.post("/api/orders", async (req, res) => {
-  try {
-    const {
-      customerId,
-      customer,
-      deliveryAddress,
-      items,
-      paymentMethod,
-      totalAmount,
-    } = req.body;
+app.post(
+  "/api/orders",
+  async (req, res) => {
+    try {
+      const {
+        customerId,
+        customer,
+        deliveryAddress,
+        items,
+        paymentMethod,
+        totalAmount,
+      } = req.body;
 
-    // ----------------------------------------
-    // CUSTOMER VALIDATION
-    // ----------------------------------------
+      if (
+        !customer ||
+        !customer.firstName ||
+        !customer.email ||
+        !customer.phone
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Complete customer details are required",
+        });
+      }
 
-    if (
-      !customer ||
-      !customer.firstName ||
-      !customer.email ||
-      !customer.phone
-    ) {
-      return res.status(400).json({
+      if (
+        !deliveryAddress ||
+        !deliveryAddress.houseNumber ||
+        !deliveryAddress.city ||
+        !deliveryAddress.state ||
+        !deliveryAddress.pinCode
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Complete delivery address is required",
+        });
+      }
+
+      if (
+        !Array.isArray(items) ||
+        items.length === 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Your cart is empty",
+        });
+      }
+
+      if (
+        !["COD", "UPI", "CARD"].includes(
+          paymentMethod
+        )
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Invalid payment method",
+        });
+      }
+
+      if (
+        totalAmount === undefined ||
+        totalAmount === null ||
+        Number(totalAmount) < 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Valid order total is required",
+        });
+      }
+
+      const order =
+        await Order.create({
+          customerId:
+            customerId || "",
+
+          customer,
+
+          deliveryAddress,
+
+          items,
+
+          paymentMethod,
+
+          totalAmount:
+            Number(totalAmount),
+
+          orderStatus:
+            "Pending",
+        });
+
+      res.status(201).json({
+        success: true,
+        message:
+          "Order placed successfully",
+        order,
+      });
+    } catch (error) {
+      console.error(
+        "CREATE ORDER ERROR:",
+        error
+      );
+
+      res.status(500).json({
         success: false,
         message:
-          "Complete customer details are required",
+          error.message ||
+          "Could not place order",
       });
     }
-
-    // ----------------------------------------
-    // ADDRESS VALIDATION
-    // ----------------------------------------
-
-    if (
-      !deliveryAddress ||
-      !deliveryAddress.houseNumber ||
-      !deliveryAddress.city ||
-      !deliveryAddress.state ||
-      !deliveryAddress.pinCode
-    ) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Complete delivery address is required",
-      });
-    }
-
-    // ----------------------------------------
-    // CART VALIDATION
-    // ----------------------------------------
-
-    if (
-      !Array.isArray(items) ||
-      items.length === 0
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Your cart is empty",
-      });
-    }
-
-    // ----------------------------------------
-    // PAYMENT VALIDATION
-    // ----------------------------------------
-
-    if (
-      !["COD", "UPI", "CARD"].includes(
-        paymentMethod
-      )
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid payment method",
-      });
-    }
-
-    // ----------------------------------------
-    // TOTAL VALIDATION
-    // ----------------------------------------
-
-    if (
-      totalAmount === undefined ||
-      totalAmount === null ||
-      Number(totalAmount) < 0
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Valid order total is required",
-      });
-    }
-
-    // ----------------------------------------
-    // CREATE ORDER
-    // ----------------------------------------
-
-    const order = await Order.create({
-      customerId: customerId || "",
-
-      customer,
-
-      deliveryAddress,
-
-      items,
-
-      paymentMethod,
-
-      totalAmount: Number(totalAmount),
-
-      orderStatus: "Pending",
-    });
-
-    console.log(
-      "New order created:",
-      order._id.toString()
-    );
-
-    console.log(
-      "Customer ID:",
-      order.customerId
-    );
-
-    res.status(201).json({
-      success: true,
-      message: "Order placed successfully",
-      order,
-    });
-  } catch (error) {
-    console.error(
-      "CREATE ORDER ERROR:",
-      error
-    );
-
-    res.status(500).json({
-      success: false,
-      message:
-        error.message ||
-        "Could not place order",
-    });
   }
-});
+);
 
-// ========================================
 // GET ALL ORDERS
-// ADMIN
-// ========================================
 
-app.get("/api/orders", async (req, res) => {
-  try {
-    const orders = await Order.find().sort({
-      createdAt: -1,
-    });
+app.get(
+  "/api/orders",
+  async (req, res) => {
+    try {
+      const orders =
+        await Order.find().sort({
+          createdAt: -1,
+        });
 
-    res.status(200).json(orders);
-  } catch (error) {
-    console.error(
-      "GET ORDERS ERROR:",
-      error
-    );
+      res.status(200).json(orders);
+    } catch (error) {
+      console.error(
+        "GET ORDERS ERROR:",
+        error
+      );
 
-    res.status(500).json({
-      success: false,
-      message: "Could not load orders",
-    });
+      res.status(500).json({
+        success: false,
+        message:
+          "Could not load orders",
+      });
+    }
   }
-});
+);
 
-// ========================================
 // GET CUSTOMER ORDERS
-// ========================================
 
 app.get(
   "/api/orders/customer/:customerId",
   async (req, res) => {
     try {
-      const { customerId } = req.params;
+      const { customerId } =
+        req.params;
 
       if (!customerId) {
         return res.status(400).json({
           success: false,
-          message: "Customer ID is required",
+          message:
+            "Customer ID is required",
         });
       }
 
-      const orders = await Order.find({
-        customerId,
-      }).sort({
-        createdAt: -1,
-      });
+      const orders =
+        await Order.find({
+          customerId,
+        }).sort({
+          createdAt: -1,
+        });
 
       res.status(200).json(orders);
     } catch (error) {
@@ -806,155 +1133,141 @@ app.get(
   }
 );
 
-// ========================================
 // GET SINGLE ORDER
-// ========================================
 
-app.get("/api/orders/:id", async (req, res) => {
-  try {
-    const order = await Order.findById(
-      req.params.id
-    );
-
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found",
-      });
-    }
-
-    res.status(200).json(order);
-  } catch (error) {
-    console.error(
-      "GET ORDER ERROR:",
-      error
-    );
-
-    res.status(500).json({
-      success: false,
-      message: "Could not load order",
-    });
-  }
-});
-
-// ========================================
-// UPDATE ORDER STATUS
-// ========================================
-//
-// IMPORTANT:
-// Rejected orders are deleted permanently.
-// Accepted orders remain in the database.
-//
-
-const updateOrderStatusHandler = async (
-  req,
-  res
-) => {
-  try {
-    const { orderStatus } = req.body;
-
-    const allowedStatuses = [
-      "Pending",
-      "Accepted",
-      "Rejected",
-      "Confirmed",
-      "Processing",
-      "Shipped",
-      "Delivered",
-      "Cancelled",
-    ];
-
-    if (
-      !orderStatus ||
-      !allowedStatuses.includes(orderStatus)
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid order status",
-      });
-    }
-
-    // ========================================
-    // REJECTED = DELETE ORDER
-    // ========================================
-
-    if (orderStatus === "Rejected") {
-      const deletedOrder =
-        await Order.findByIdAndDelete(
+app.get(
+  "/api/orders/:id",
+  async (req, res) => {
+    try {
+      const order =
+        await Order.findById(
           req.params.id
         );
 
-      if (!deletedOrder) {
+      if (!order) {
         return res.status(404).json({
           success: false,
           message: "Order not found",
         });
       }
 
-      console.log(
-        "Order rejected and deleted:",
-        req.params.id
+      res.status(200).json(order);
+    } catch (error) {
+      console.error(
+        "GET ORDER ERROR:",
+        error
       );
 
-      return res.status(200).json({
-        success: true,
-        deleted: true,
-        message:
-          "Order rejected and deleted successfully",
-        orderId: req.params.id,
-      });
-    }
-
-    // ========================================
-    // NORMAL STATUS UPDATE
-    // ========================================
-
-    const updatedOrder =
-      await Order.findByIdAndUpdate(
-        req.params.id,
-        {
-          orderStatus,
-        },
-        {
-          new: true,
-          runValidators: true,
-        }
-      );
-
-    if (!updatedOrder) {
-      return res.status(404).json({
+      res.status(500).json({
         success: false,
-        message: "Order not found",
+        message:
+          "Could not load order",
       });
     }
-
-    console.log(
-      `Order ${req.params.id} status changed to ${orderStatus}`
-    );
-
-    res.status(200).json({
-      success: true,
-      message: `Order ${orderStatus.toLowerCase()} successfully`,
-      order: updatedOrder,
-    });
-  } catch (error) {
-    console.error(
-      "UPDATE ORDER STATUS ERROR:",
-      error
-    );
-
-    res.status(500).json({
-      success: false,
-      message:
-        error.message ||
-        "Could not update order status",
-    });
   }
-};
+);
 
 // ========================================
-// STATUS ROUTES
+// UPDATE ORDER STATUS
 // ========================================
+
+const updateOrderStatusHandler =
+  async (req, res) => {
+    try {
+      const { orderStatus } =
+        req.body;
+
+      const allowedStatuses = [
+        "Pending",
+        "Accepted",
+        "Rejected",
+        "Confirmed",
+        "Processing",
+        "Shipped",
+        "Delivered",
+        "Cancelled",
+      ];
+
+      if (
+        !orderStatus ||
+        !allowedStatuses.includes(
+          orderStatus
+        )
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Invalid order status",
+        });
+      }
+
+      if (
+        orderStatus === "Rejected"
+      ) {
+        const deletedOrder =
+          await Order.findByIdAndDelete(
+            req.params.id
+          );
+
+        if (!deletedOrder) {
+          return res.status(404).json({
+            success: false,
+            message:
+              "Order not found",
+          });
+        }
+
+        return res.status(200).json({
+          success: true,
+          deleted: true,
+          message:
+            "Order rejected and deleted successfully",
+          orderId:
+            req.params.id,
+        });
+      }
+
+      const updatedOrder =
+        await Order.findByIdAndUpdate(
+          req.params.id,
+          {
+            orderStatus,
+          },
+          {
+            new: true,
+            runValidators: true,
+          }
+        );
+
+      if (!updatedOrder) {
+        return res.status(404).json({
+          success: false,
+          message:
+            "Order not found",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: `Order ${orderStatus.toLowerCase()} successfully`,
+        order: updatedOrder,
+      });
+    } catch (error) {
+      console.error(
+        "UPDATE ORDER STATUS ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        success: false,
+        message:
+          error.message ||
+          "Could not update order status",
+      });
+    }
+  };
+
+// STATUS ROUTES
 
 app.patch(
   "/api/orders/:id/status",
@@ -966,71 +1279,74 @@ app.put(
   updateOrderStatusHandler
 );
 
-// ========================================
 // DELETE ORDER
-// ========================================
 
-app.delete("/api/orders/:id", async (req, res) => {
-  try {
-    const order =
-      await Order.findByIdAndDelete(
-        req.params.id
+app.delete(
+  "/api/orders/:id",
+  async (req, res) => {
+    try {
+      const order =
+        await Order.findByIdAndDelete(
+          req.params.id
+        );
+
+      if (!order) {
+        return res.status(404).json({
+          success: false,
+          message: "Order not found",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message:
+          "Order deleted successfully",
+      });
+    } catch (error) {
+      console.error(
+        "DELETE ORDER ERROR:",
+        error
       );
 
-    if (!order) {
-      return res.status(404).json({
+      res.status(500).json({
         success: false,
-        message: "Order not found",
+        message:
+          "Could not delete order",
       });
     }
-
-    console.log(
-      "Order deleted:",
-      req.params.id
-    );
-
-    res.status(200).json({
-      success: true,
-      message: "Order deleted successfully",
-    });
-  } catch (error) {
-    console.error(
-      "DELETE ORDER ERROR:",
-      error
-    );
-
-    res.status(500).json({
-      success: false,
-      message: "Could not delete order",
-    });
   }
-});
+);
 
 // ========================================
 // GLOBAL ERROR HANDLER
 // ========================================
 
-app.use((error, req, res, next) => {
-  console.error(
-    "GLOBAL SERVER ERROR:",
-    error
-  );
+app.use(
+  (error, req, res, next) => {
+    console.error(
+      "GLOBAL SERVER ERROR:",
+      error
+    );
 
-  if (error.type === "entity.too.large") {
-    return res.status(413).json({
+    if (
+      error.type ===
+      "entity.too.large"
+    ) {
+      return res.status(413).json({
+        success: false,
+        message:
+          "Image is too large. Please use a smaller image.",
+      });
+    }
+
+    res.status(500).json({
       success: false,
       message:
-        "Image is too large. Please use a smaller image.",
+        error.message ||
+        "Internal server error",
     });
   }
-
-  res.status(500).json({
-    success: false,
-    message:
-      error.message ||
-      "Internal server error",
-  });
-});
+);
 
 // ========================================
 // MONGODB CONNECTION

@@ -21,6 +21,9 @@ import "./styles.css";
 const API_URL =
   "https://ira-the-label.onrender.com/api/products";
 
+const FILTERS_API_URL =
+  "https://ira-the-label.onrender.com/api/filters";
+
 const categories = [
   "All",
   "Kurtis",
@@ -124,6 +127,20 @@ function getProductImage(product) {
   return `https://ira-the-label.onrender.com${image}`;
 }
 
+function getFilterImage(image) {
+  if (!image) return "";
+
+  if (
+    image.startsWith("data:image") ||
+    image.startsWith("http://") ||
+    image.startsWith("https://")
+  ) {
+    return image;
+  }
+
+  return `https://ira-the-label.onrender.com${image}`;
+}
+
 function getDiscountedPrice(product) {
   const price = Number(product?.price || 0);
   const discount = Number(product?.discount || 0);
@@ -206,6 +223,13 @@ function App() {
     useState([]);
 
   const [loading, setLoading] =
+    useState(true);
+
+  // Homepage filters managed from Admin Dashboard
+  const [homepageFilters, setHomepageFilters] =
+    useState([]);
+
+  const [filtersLoading, setFiltersLoading] =
     useState(true);
 
   const [selectedProduct, setSelectedProduct] =
@@ -304,8 +328,52 @@ function App() {
     }
   };
 
+  // ========================================================
+  // LOAD HOMEPAGE FILTERS
+  // ========================================================
+
+  const loadHomepageFilters = async () => {
+    try {
+      setFiltersLoading(true);
+
+      const response = await fetch(
+        FILTERS_API_URL,
+        {
+          cache: "no-store",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to load homepage filters (${response.status})`
+        );
+      }
+
+      const data = await response.json();
+
+      const fetchedFilters =
+        Array.isArray(data)
+          ? data
+          : Array.isArray(data.filters)
+          ? data.filters
+          : [];
+
+      setHomepageFilters(fetchedFilters);
+    } catch (error) {
+      console.error(
+        "LOAD HOMEPAGE FILTERS ERROR:",
+        error
+      );
+
+      setHomepageFilters([]);
+    } finally {
+      setFiltersLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadProducts();
+    loadHomepageFilters();
   }, []);
 
   // ========================================================
@@ -591,6 +659,7 @@ function App() {
         onBack={() => {
           setPage("home");
           loadProducts();
+          loadHomepageFilters();
         }}
       />
     );
@@ -818,6 +887,8 @@ function App() {
           nav={nav}
           setCategory={setCategory}
           products={products}
+          homepageFilters={homepageFilters}
+          filtersLoading={filtersLoading}
           openProduct={openProduct}
           wishlist={wishlist}
           toggleWishlist={toggleWishlist}
@@ -973,6 +1044,8 @@ function Home({
   nav,
   setCategory,
   products,
+  homepageFilters,
+  filtersLoading,
   openProduct,
   wishlist,
   toggleWishlist,
@@ -1020,11 +1093,11 @@ function Home({
 
         <div className="hero-art">
 
-          <img
-            src="/IRA-THE-LABEL/logo.png"
-            alt="IRA THE LABEL"
-            className="hero-logo"
-          />
+<img
+  src={`${import.meta.env.BASE_URL}hero-image.jpg`}
+  alt="IRA THE LABEL"
+  className="hero-logo"
+/>
 
         </div>
 
@@ -1045,64 +1118,86 @@ function Home({
 
       </section>
 
-      {/* SHOP BY MOOD */}
+      {/* SHOP BY MOOD - MANAGED FROM ADMIN DASHBOARD */}
 
-      <section className="section">
+      {filtersLoading ? (
 
-        <div className="section-head">
+        <section className="section">
+          <div className="section-head">
+            <div>
+              <p className="eyebrow">
+                SHOP BY MOOD
+              </p>
 
-          <div>
+              <h2>
+                Discover the collection.
+              </h2>
+            </div>
+          </div>
 
-            <p className="eyebrow">
-              SHOP BY MOOD
-            </p>
+          <p
+            style={{
+              textAlign: "center",
+              padding: "30px 0",
+            }}
+          >
+            Loading collections...
+          </p>
+        </section>
 
-            <h2>
-              Find your everyday
-              favourite.
-            </h2>
+      ) : homepageFilters.length > 0 ? (
+
+        <section className="section">
+
+          <div className="section-head">
+
+            <div>
+
+              <p className="eyebrow">
+                SHOP BY MOOD
+              </p>
+
+              <h2>
+                Discover the collection.
+              </h2>
+
+            </div>
+
+            <button
+              className="text-btn"
+              onClick={() => {
+                setCategory("All");
+                nav("shop");
+              }}
+            >
+              View all
+              <ArrowRight size={15} />
+            </button>
 
           </div>
 
-          <button
-            className="text-btn"
-            onClick={() =>
-              nav("shop")
-            }
-          >
-            View all
+          <div className="category-grid dynamic-category-grid">
 
-            <ArrowRight size={15} />
-          </button>
+            {homepageFilters.map((filter) => (
 
-        </div>
-
-        <div className="category-grid">
-
-          {[
-            ["Kurtis", "rose"],
-            ["Suits", "green"],
-            ["Sets", "sky"],
-            ["Dresses", "lavender"],
-          ].map(
-            ([name, tone]) => (
               <button
                 className="category-card"
-                key={name}
+                key={filter._id || filter.id || filter.name}
                 onClick={() => {
-                  setCategory(name);
+                  setCategory(filter.name);
                   nav("shop");
                 }}
               >
 
                 <ProductVisual
-                  tone={tone}
+                  image={getFilterImage(filter.image)}
+                  name={filter.name}
                 />
 
                 <div>
 
                   <span>
-                    {name}
+                    {filter.name}
                   </span>
 
                   <ArrowRight size={15} />
@@ -1110,12 +1205,14 @@ function Home({
                 </div>
 
               </button>
-            )
-          )}
 
-        </div>
+            ))}
 
-      </section>
+          </div>
+
+        </section>
+
+      ) : null}
 
       {/* NEW ARRIVALS */}
 
