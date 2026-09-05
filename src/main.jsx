@@ -24,15 +24,6 @@ const API_URL =
 const FILTERS_API_URL =
   "https://ira-the-label.onrender.com/api/filters";
 
-const categories = [
-  "All",
-  "Kurtis",
-  "Suits",
-  "Sets",
-  "Co-ords",
-  "Dresses",
-];
-
 // ========================================================
 // CUSTOMER ID
 // ========================================================
@@ -695,19 +686,13 @@ function App() {
           {/* LOGO */}
 
           <div
-            className="wordmark"
-            onClick={() =>
-              nav("home")
-            }
-            style={{
-              cursor: "pointer",
-            }}
-          >
-            IRA{" "}
-            <span>
-              THE LABEL
-            </span>
-          </div>
+  className="wordmark"
+  onClick={() => nav("home")}
+>
+  <div>IRA</div>
+
+  <span>THE LABEL</span>
+</div>
 
           {/* ================= NAVIGATION ================= */}
 
@@ -722,10 +707,9 @@ function App() {
             {[
               "New In",
               "Collections",
-              "Kurtis",
-              "Suits",
-              "Sets",
-              "Dresses",
+              ...homepageFilters
+                .map((filter) => filter?.name)
+                .filter(Boolean),
               "Sale",
             ].map((item) => (
               <button
@@ -903,6 +887,7 @@ function App() {
           products={filteredProducts}
           category={category}
           setCategory={setCategory}
+          homepageFilters={homepageFilters}
           wishlist={wishlist}
           toggleWishlist={toggleWishlist}
           addToCart={addToCart}
@@ -1276,6 +1261,7 @@ function Shop({
   products,
   category,
   setCategory,
+  homepageFilters = [],
   wishlist,
   toggleWishlist,
   addToCart,
@@ -1306,7 +1292,12 @@ function Shop({
 
         <div className="chips">
 
-          {categories.map((item) => (
+          {[
+            "All",
+            ...homepageFilters
+              .map((filter) => filter?.name)
+              .filter(Boolean),
+          ].map((item) => (
             <button
               className={
                 category === item
