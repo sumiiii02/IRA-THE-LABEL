@@ -1643,7 +1643,7 @@ function Cart({
     );
 
   return (
-    <main className="simple-page">
+    <main className="simple-page wishlist-page">
 
       <p className="eyebrow">
         YOUR BAG
