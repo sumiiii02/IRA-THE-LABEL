@@ -15860,3 +15860,884 @@ section.section-categories {
   .admin-order-footer > div:first-child strong { font-size: 16px; }
   .admin-status-actions { grid-template-columns: 1fr; }
 }
+/* =========================================================
+   IRA THE LABEL — PREMIUM MOBILE NAVIGATION
+   Overrides the older mobile dropdown navigation
+========================================================= */
+
+@media (max-width: 1000px) {
+
+  /* ---------- HEADER ---------- */
+
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+
+  .navrow {
+    position: relative;
+    z-index: 1001;
+  }
+
+  /* ---------- MENU BUTTON ---------- */
+
+  .mobile-only.menu-toggle {
+    position: relative;
+    z-index: 1101;
+
+    width: 42px;
+    height: 42px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border: 0;
+    background: transparent;
+
+    color: var(--ink);
+  }
+
+  .mobile-only.menu-toggle:hover {
+    color: var(--accent);
+  }
+
+  .mobile-only.menu-toggle.is-open {
+    position: fixed;
+
+    top: 18px;
+    left: 18px;
+
+    z-index: 1105;
+
+    width: 42px;
+    height: 42px;
+
+    border-radius: 50%;
+
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(41, 37, 35, 0.08);
+
+    box-shadow: 0 5px 20px rgba(41, 37, 35, 0.08);
+  }
+
+
+  /* ---------- MOBILE DRAWER ---------- */
+
+  .navlinks {
+    display: none;
+  }
+
+  .navlinks.open {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    width: min(350px, 88vw);
+    height: 100dvh;
+
+    z-index: 1100;
+
+    margin: 0;
+    padding: 92px 24px 32px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+
+    gap: 4px;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    background: var(--paper);
+
+    border-right: 1px solid var(--line);
+
+    box-shadow:
+      18px 0 50px rgba(41, 37, 35, 0.12);
+
+    animation: iraMobileDrawerIn 0.32s
+      cubic-bezier(0.22, 1, 0.36, 1)
+      both;
+  }
+
+
+  /* ---------- NAV LINKS ---------- */
+
+  .navlinks.open > button {
+    width: 100%;
+
+    min-height: 52px;
+
+    margin: 0;
+    padding: 0 14px;
+
+    display: flex;
+    align-items: center;
+
+    border: 0;
+    border-radius: 8px;
+
+    background: transparent;
+
+    color: var(--ink);
+
+    font-family: Inter, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+
+    letter-spacing: 0.01em;
+
+    text-align: left;
+
+    transition:
+      background 0.2s ease,
+      color 0.2s ease,
+      padding-left 0.2s ease;
+  }
+
+  .navlinks.open > button:hover,
+  .navlinks.open > button:focus-visible {
+    background: rgba(255, 255, 255, 0.7);
+    color: var(--accent);
+
+    padding-left: 18px;
+
+    outline: none;
+  }
+
+  .navlinks.open > button:active {
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+
+  /* ---------- DIVIDER ---------- */
+
+  .navlinks.open .mobile-menu-divider {
+    width: 100%;
+
+    height: 1px;
+
+    margin: 22px 0 20px;
+
+    flex-shrink: 0;
+
+    background: var(--line);
+  }
+
+
+  /* ---------- ACCOUNT ---------- */
+
+  .navlinks.open .mobile-menu-account {
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+  }
+
+  .navlinks.open .mobile-menu-account p {
+    margin: 0 0 6px 12px;
+
+    color: var(--accent);
+
+    font-size: 9px;
+    font-weight: 700;
+
+    letter-spacing: 0.22em;
+
+    line-height: 1;
+  }
+
+
+  /* ---------- ACCOUNT ACTIONS ---------- */
+
+  .navlinks.open .mobile-menu-action {
+    width: 100%;
+    min-height: 56px;
+
+    padding: 0 15px;
+
+    display: flex;
+    align-items: center;
+
+    border: 1px solid var(--line);
+    border-radius: 10px;
+
+    background: rgba(255, 255, 255, 0.55);
+
+    color: var(--ink);
+
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .navlinks.open .mobile-menu-action:hover {
+    background: var(--white);
+    border-color: #d6cbc3;
+
+    transform: translateX(2px);
+  }
+
+  .navlinks.open .mobile-menu-action > svg:first-child {
+    flex-shrink: 0;
+  }
+
+  .navlinks.open .mobile-menu-action span {
+    margin-left: 12px;
+
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .navlinks.open .mobile-menu-action svg:last-child {
+    margin-left: auto;
+
+    color: #a79e98;
+  }
+
+
+  /* ---------- ADMIN CARD ---------- */
+
+  .navlinks.open .mobile-menu-action.admin {
+    min-height: 58px;
+
+    margin-top: 2px;
+
+    border: 1px solid var(--ink);
+
+    background: var(--ink);
+
+    color: white;
+
+    box-shadow:
+      0 8px 24px rgba(41, 37, 35, 0.14);
+  }
+
+  .navlinks.open .mobile-menu-action.admin:hover {
+    background: #453f3b;
+    border-color: #453f3b;
+
+    transform: translateY(-1px);
+  }
+
+  .navlinks.open .mobile-menu-action.admin svg:last-child {
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  .navlinks.open .admin-icon {
+    width: 20px;
+    height: 20px;
+
+    margin: 0 !important;
+
+    display: grid;
+    place-items: center;
+
+    font-size: 15px !important;
+    font-weight: 400 !important;
+
+    color: #fff;
+  }
+
+
+  /* ---------- HIDE DESKTOP ACCOUNT BUTTONS ---------- */
+
+  .desktop-account-actions {
+    display: none;
+  }
+
+
+  /* ---------- PAGE BEHIND DRAWER ---------- */
+
+  body:has(.navlinks.open) {
+    overflow: hidden;
+  }
+
+
+  /* ---------- SEARCH ---------- */
+
+  .searchbox {
+    width: 140px;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 650px) {
+
+  .navrow {
+    height: 64px;
+
+    padding: 0 12px;
+
+    gap: 6px;
+  }
+
+  .topline {
+    padding: 7px 6px;
+
+    font-size: 8px;
+
+    letter-spacing: 0.17em;
+  }
+
+  .wordmark {
+    font-size: 19px;
+  }
+
+  .wordmark span {
+    margin-left: 4px;
+
+    font-size: 7px;
+
+    letter-spacing: 0.18em;
+  }
+
+  .actions {
+    gap: 3px;
+  }
+
+  .searchbox {
+    width: 105px;
+  }
+
+  .searchbox input {
+    font-size: 11px;
+  }
+
+  .actions .icon-btn {
+    padding: 5px;
+  }
+
+
+  /* Drawer */
+
+  .navlinks.open {
+    width: min(340px, 90vw);
+
+    padding:
+      86px
+      18px
+      26px;
+  }
+
+  .mobile-only.menu-toggle.is-open {
+    top: 16px;
+    left: 16px;
+
+    width: 40px;
+    height: 40px;
+  }
+
+  .navlinks.open > button {
+    min-height: 50px;
+
+    padding: 0 13px;
+
+    font-size: 13.5px;
+  }
+
+  .navlinks.open .mobile-menu-divider {
+    margin-top: 20px;
+    margin-bottom: 18px;
+  }
+
+  .navlinks.open .mobile-menu-action {
+    min-height: 54px;
+  }
+}
+
+
+/* =========================================================
+   DRAWER ANIMATION
+========================================================= */
+
+@keyframes iraMobileDrawerIn {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+/* =========================================================
+   IRA THE LABEL
+   PREMIUM MOBILE MENU — FINAL
+========================================================= */
+
+@media (max-width: 1000px) {
+
+  /* -----------------------------------------
+     DRAWER
+  ----------------------------------------- */
+
+  .navlinks.open {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+    right: auto;
+
+    width: min(370px, 88vw);
+    height: 100dvh;
+
+    z-index: 1100;
+
+    padding: 104px 28px 28px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+
+    gap: 2px;
+
+    overflow-y: auto;
+
+    /* Premium editorial background */
+    background:
+      radial-gradient(
+        circle at 100% 0%,
+        rgba(234, 212, 207, 0.42),
+        transparent 34%
+      ),
+      linear-gradient(
+        145deg,
+        #fffdfb 0%,
+        #fcf8f5 55%,
+        #f6eee9 100%
+      );
+
+    border: 0;
+    border-right: 1px solid rgba(41, 37, 35, 0.08);
+
+    box-shadow:
+      24px 0 70px rgba(41, 37, 35, 0.14);
+
+    animation:
+      iraPremiumMenuIn
+      0.42s
+      cubic-bezier(0.22, 1, 0.36, 1)
+      both;
+  }
+
+
+  /* -----------------------------------------
+     SUBTLE BRAND DETAIL
+  ----------------------------------------- */
+
+  .navlinks.open::before {
+    content: "IRA  /  THE LABEL";
+
+    position: absolute;
+
+    top: 28px;
+    left: 28px;
+
+    color: #92725b;
+
+    font-family: Inter, sans-serif;
+    font-size: 8px;
+    font-weight: 700;
+
+    letter-spacing: 0.28em;
+
+    opacity: 0.9;
+  }
+
+
+  /* -----------------------------------------
+     NAVIGATION LINKS
+  ----------------------------------------- */
+
+  .navlinks.open > button {
+    position: relative;
+
+    width: 100%;
+    min-height: 54px;
+
+    margin: 0;
+    padding: 0 12px;
+
+    display: flex;
+    align-items: center;
+
+    border: 0;
+    border-radius: 0;
+
+    background: transparent;
+
+    color: #292523;
+
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 18px;
+    font-weight: 400;
+
+    letter-spacing: 0.015em;
+
+    text-align: left;
+
+    transition:
+      color 0.25s ease,
+      padding-left 0.25s ease,
+      background 0.25s ease;
+  }
+
+
+  /* elegant little line */
+  .navlinks.open > button::after {
+    content: "";
+
+    position: absolute;
+
+    left: 12px;
+    bottom: 3px;
+
+    width: 0;
+    height: 1px;
+
+    background: #92725b;
+
+    transition: width 0.28s ease;
+  }
+
+
+  .navlinks.open > button:hover {
+    padding-left: 17px;
+
+    background: rgba(255, 255, 255, 0.45);
+
+    color: #92725b;
+  }
+
+  .navlinks.open > button:hover::after {
+    width: 28px;
+  }
+
+
+  /* -----------------------------------------
+     DIVIDER
+  ----------------------------------------- */
+
+  .navlinks.open .mobile-menu-divider {
+    width: 100%;
+    height: 1px;
+
+    margin: 18px 0 17px;
+
+    background:
+      linear-gradient(
+        to right,
+        rgba(41, 37, 35, 0.16),
+        rgba(41, 37, 35, 0.03)
+      );
+  }
+
+
+  /* -----------------------------------------
+     ACCOUNT SECTION
+  ----------------------------------------- */
+
+  .navlinks.open .mobile-menu-account {
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+  }
+
+  .navlinks.open .mobile-menu-account p {
+    margin: 0 0 5px 12px;
+
+    color: #92725b;
+
+    font-family: Inter, sans-serif;
+    font-size: 8px;
+    font-weight: 700;
+
+    letter-spacing: 0.28em;
+
+    text-transform: uppercase;
+  }
+
+
+  /* -----------------------------------------
+     ACCOUNT CARDS
+  ----------------------------------------- */
+
+  .navlinks.open .mobile-menu-action {
+    position: relative;
+
+    width: 100%;
+    min-height: 52px;
+
+    padding: 0 14px;
+
+    display: flex;
+    align-items: center;
+
+    border: 1px solid rgba(41, 37, 35, 0.09);
+    border-radius: 12px;
+
+    background: rgba(255, 255, 255, 0.62);
+
+    color: #292523;
+
+    box-shadow:
+      0 4px 16px rgba(41, 37, 35, 0.035);
+
+    transition:
+      transform 0.22s ease,
+      background 0.22s ease,
+      border-color 0.22s ease;
+  }
+
+  .navlinks.open .mobile-menu-action:hover {
+    transform: translateY(-1px);
+
+    background: rgba(255, 255, 255, 0.9);
+
+    border-color: rgba(146, 114, 91, 0.25);
+  }
+
+
+  .navlinks.open .mobile-menu-action span {
+    margin-left: 11px;
+
+    font-family: Inter, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+
+    letter-spacing: 0.01em;
+  }
+
+
+  .navlinks.open .mobile-menu-action svg:first-child {
+    width: 17px;
+    height: 17px;
+
+    color: #92725b;
+  }
+
+  .navlinks.open .mobile-menu-action svg:last-child {
+    width: 16px;
+    height: 16px;
+
+    margin-left: auto;
+
+    color: #aaa09a;
+
+    transition: transform 0.2s ease;
+  }
+
+  .navlinks.open .mobile-menu-action:hover svg:last-child {
+    transform: translateX(3px);
+  }
+
+
+  /* -----------------------------------------
+     ADMIN DASHBOARD
+  ----------------------------------------- */
+
+  .navlinks.open .mobile-menu-action.admin {
+    min-height: 55px;
+
+    margin-top: 1px;
+
+    border: 1px solid #292523;
+
+    background:
+      linear-gradient(
+        135deg,
+        #292523 0%,
+        #3d3733 100%
+      );
+
+    color: #fff;
+
+    box-shadow:
+      0 10px 25px rgba(41, 37, 35, 0.16);
+  }
+
+  .navlinks.open .mobile-menu-action.admin:hover {
+    background:
+      linear-gradient(
+        135deg,
+        #35302d 0%,
+        #4b443f 100%
+      );
+
+    border-color: #35302d;
+  }
+
+  .navlinks.open .mobile-menu-action.admin svg:first-child {
+    color: #fff;
+  }
+
+  .navlinks.open .mobile-menu-action.admin svg:last-child {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .navlinks.open .mobile-menu-action.admin .admin-icon {
+    width: 18px;
+    height: 18px;
+
+    margin: 0 !important;
+
+    display: grid;
+    place-items: center;
+
+    color: #fff;
+
+    font-size: 14px !important;
+    font-weight: 400 !important;
+  }
+
+
+  /* -----------------------------------------
+     CLOSE BUTTON
+  ----------------------------------------- */
+
+  .mobile-only.menu-toggle.is-open {
+    position: fixed;
+
+    top: 20px;
+    left: 20px;
+
+    z-index: 1200;
+
+    width: 38px;
+    height: 38px;
+
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid rgba(41, 37, 35, 0.1);
+    border-radius: 50%;
+
+    background: rgba(255, 255, 255, 0.72);
+
+    color: #292523;
+
+    box-shadow:
+      0 5px 18px rgba(41, 37, 35, 0.08);
+
+    backdrop-filter: blur(8px);
+  }
+
+  .mobile-only.menu-toggle.is-open:hover {
+    background: #fff;
+    color: #92725b;
+  }
+
+
+  /* -----------------------------------------
+     HIDE DESKTOP ACCOUNT BUTTONS
+  ----------------------------------------- */
+
+  .desktop-account-actions {
+    display: none;
+  }
+
+
+  /* -----------------------------------------
+     LOCK PAGE WHEN MENU IS OPEN
+  ----------------------------------------- */
+
+  body:has(.navlinks.open) {
+    overflow: hidden;
+  }
+}
+
+
+/* =========================================================
+   SMALL PHONES
+========================================================= */
+
+@media (max-width: 650px) {
+
+  .navlinks.open {
+    width: min(345px, 90vw);
+
+    padding:
+      92px
+      20px
+      22px;
+  }
+
+  .navlinks.open::before {
+    top: 25px;
+    left: 20px;
+
+    font-size: 7px;
+  }
+
+  .mobile-only.menu-toggle.is-open {
+    top: 17px;
+    left: 16px;
+
+    width: 36px;
+    height: 36px;
+  }
+
+  .navlinks.open > button {
+    min-height: 50px;
+
+    padding-left: 10px;
+
+    font-size: 17px;
+  }
+
+  .navlinks.open > button::after {
+    left: 10px;
+  }
+
+  .navlinks.open .mobile-menu-divider {
+    margin-top: 14px;
+    margin-bottom: 15px;
+  }
+
+  .navlinks.open .mobile-menu-action {
+    min-height: 49px;
+  }
+
+  .navlinks.open .mobile-menu-action.admin {
+    min-height: 52px;
+  }
+}
+
+
+/* =========================================================
+   PREMIUM MENU ANIMATION
+========================================================= */
+
+@keyframes iraPremiumMenuIn {
+
+  from {
+    opacity: 0;
+    transform: translateX(-35px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
