@@ -368,6 +368,41 @@ function App() {
   }, []);
 
   // ========================================================
+  // BROWSER BACK / FORWARD NAVIGATION
+  // ========================================================
+
+  useEffect(() => {
+    if (!window.history.state?.iraPage) {
+      window.history.replaceState(
+        {
+          ...(window.history.state || {}),
+          iraPage: "home",
+        },
+        "",
+        window.location.href
+      );
+    }
+
+    const handlePopState = (event) => {
+      const nextPage = event.state?.iraPage || "home";
+
+      setPage(nextPage);
+      setMenuOpen(false);
+
+      window.scrollTo({
+        top: 0,
+        behavior: "auto",
+      });
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
+  // ========================================================
   // FILTER PRODUCTS
   // ========================================================
 
@@ -567,6 +602,26 @@ function App() {
   // ========================================================
 
   const nav = (newPage) => {
+    if (newPage === page) {
+      setMenuOpen(false);
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+
+      return;
+    }
+
+    window.history.pushState(
+      {
+        ...(window.history.state || {}),
+        iraPage: newPage,
+      },
+      "",
+      window.location.href
+    );
+
     setPage(newPage);
     setMenuOpen(false);
 
@@ -648,7 +703,7 @@ function App() {
     return (
       <AdminPanel
         onBack={() => {
-          setPage("home");
+          nav("home");
           loadProducts();
           loadHomepageFilters();
         }}
@@ -670,11 +725,15 @@ function App() {
           {/* MOBILE MENU BUTTON */}
 
           <button
-            className="icon-btn mobile-only"
+            className={`icon-btn mobile-only menu-toggle ${
+              menuOpen ? "is-open" : ""
+            }`}
             onClick={() =>
               setMenuOpen(!menuOpen)
             }
-            aria-label="Toggle menu"
+            aria-label={
+              menuOpen ? "Close menu" : "Open menu"
+            }
           >
             {menuOpen ? (
               <X />
@@ -710,16 +769,18 @@ function App() {
             }`}
           >
 
-            {[
-              "New In",
-              "Collections",
-              ...homepageFilters
-                .map((filter) => filter?.name)
-                .filter(Boolean),
-              "Sale",
-            ].map((item) => (
+            {Array.from(
+              new Set([
+                "New In",
+                "Collections",
+                ...homepageFilters
+                  .map((filter) => filter?.name)
+                  .filter(Boolean),
+                "Sale",
+              ])
+            ).map((item, index) => (
               <button
-                key={item}
+                key={`${item}-${index}`}
                 onClick={() => {
 
                   if (
