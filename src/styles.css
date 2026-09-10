@@ -10874,3 +10874,4989 @@ footer {
       translateX(0);
   }
 }
+/* =========================================================
+   DYNAMIC CATEGORY FILTERS
+   Images come from the Admin Dashboard
+   ========================================================= */
+
+.chips {
+  width: 100%;
+
+  display: grid;
+  grid-template-columns: repeat(8, minmax(80px, 1fr));
+
+  gap: 26px 18px;
+
+  align-items: start;
+}
+
+
+/* Individual dynamic filter */
+.chips button {
+  width: 100%;
+  min-width: 0;
+
+  padding: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+
+  gap: 10px;
+
+  border: 0;
+  outline: none;
+
+  background: transparent;
+
+  color: var(--ink);
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+
+  line-height: 1.3;
+  text-align: center;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.25s ease,
+    color 0.25s ease;
+}
+
+
+/* =========================================================
+   FILTER IMAGE
+   Whatever image is uploaded in Admin Dashboard
+   ========================================================= */
+
+.chips button img {
+  width: 88px;
+  height: 88px;
+
+  flex: 0 0 88px;
+
+  display: block;
+
+  border-radius: 50%;
+
+  object-fit: cover;
+  object-position: center;
+
+  border: 1px solid var(--line);
+
+  background: #f5f2ef;
+
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+
+/* =========================================================
+   FILTER NAME
+   ========================================================= */
+
+.chips button span {
+  display: block;
+
+  max-width: 110px;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   HOVER
+   ========================================================= */
+
+.chips button:hover {
+  transform: translateY(-3px);
+}
+
+.chips button:hover img {
+  transform: scale(1.04);
+
+  border-color: var(--ink);
+
+  box-shadow:
+    0 8px 22px rgba(41, 37, 35, 0.10);
+}
+
+
+/* =========================================================
+   ACTIVE FILTER
+   ========================================================= */
+
+.chips button.active {
+  border: 0;
+  background: transparent;
+
+  color: var(--ink);
+}
+
+.chips button.active img {
+  border: 2px solid var(--ink);
+
+  box-shadow:
+    0 0 0 4px rgba(234, 208, 208, 0.55);
+
+  transform: scale(1.03);
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+  .chips {
+    grid-template-columns:
+      repeat(6, minmax(75px, 1fr));
+
+    gap: 24px 14px;
+  }
+
+  .chips button img {
+    width: 78px;
+    height: 78px;
+
+    flex-basis: 78px;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 650px) {
+
+  .chips {
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+
+    gap: 22px 8px;
+  }
+
+  .chips button {
+    gap: 8px;
+
+    font-size: 10px;
+  }
+
+  .chips button img {
+    width: 68px;
+    height: 68px;
+
+    flex-basis: 68px;
+  }
+
+  .chips button.active img {
+    border-width: 2px;
+
+    box-shadow:
+      0 0 0 3px rgba(234, 208, 208, 0.55);
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 390px) {
+
+  .chips {
+    gap: 20px 5px;
+  }
+
+  .chips button {
+    font-size: 9px;
+  }
+
+  .chips button img {
+    width: 62px;
+    height: 62px;
+
+    flex-basis: 62px;
+  }
+
+}
+/* ADMIN FILTER CIRCLES */
+
+.dynamic-category-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.dynamic-category-grid .category-card {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: center;
+  cursor: pointer;
+}
+
+.dynamic-filter-circle {
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f5f1ee;
+  border: 1px solid var(--line);
+  transition: transform 0.3s ease;
+}
+
+.dynamic-filter-circle img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+
+.dynamic-filter-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.dynamic-filter-name span {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dynamic-category-grid .category-card:hover .dynamic-filter-circle {
+  transform: scale(1.04);
+}
+
+@media (max-width: 1000px) {
+  .dynamic-category-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px 16px;
+  }
+
+  .dynamic-filter-circle {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+@media (max-width: 650px) {
+  .dynamic-category-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px 10px;
+  }
+
+  .dynamic-filter-circle {
+    width: 90px;
+    height: 90px;
+    margin-bottom: 8px;
+  }
+
+  .dynamic-filter-name {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 390px) {
+  .dynamic-category-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px 6px;
+  }
+
+  .dynamic-filter-circle {
+    width: 78px;
+    height: 78px;
+  }
+
+  .dynamic-filter-name {
+    font-size: 9px;
+  }
+}
+/* =========================================
+   DYNAMIC ADMIN FILTER IMAGES
+   ========================================= */
+
+.dynamic-filter-circle {
+  width: 170px;
+  height: 170px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f5f1ee;
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dynamic-filter-circle img {
+  width: 100%;
+  height: 100%;
+  display: block;
+
+  /* Keeps the image looking natural */
+  object-fit: cover;
+
+  /* Start from the upper-middle area */
+  object-position: center 35%;
+}
+
+.dynamic-category-grid .category-card:hover .dynamic-filter-circle {
+  transform: scale(1.035);
+  box-shadow: 0 10px 25px rgba(41, 37, 35, 0.10);
+}
+
+
+/* =========================================
+   TABLET
+   ========================================= */
+
+@media (max-width: 1000px) {
+  .dynamic-filter-circle {
+    width: 135px;
+    height: 135px;
+  }
+}
+
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 650px) {
+  .dynamic-filter-circle {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 8px;
+  }
+
+  .dynamic-filter-name {
+    font-size: 10px;
+  }
+}
+
+
+/* =========================================
+   SMALL MOBILE
+   ========================================= */
+
+@media (max-width: 390px) {
+  .dynamic-filter-circle {
+    width: 82px;
+    height: 82px;
+  }
+
+  .dynamic-filter-name {
+    font-size: 9px;
+  }
+}
+/* =========================================================
+   IRA THE LABEL — FINAL PREMIUM HOMEPAGE OVERRIDE
+   Paste this at the VERY BOTTOM of your CSS
+   ========================================================= */
+
+
+/* =========================================================
+   1. MOBILE HERO — REMOVE HUGE EMPTY SPACE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .hero {
+    min-height: 0 !important;
+    height: auto !important;
+
+    padding: 44px 22px 34px !important;
+
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+
+    align-items: center;
+  }
+
+  .hero-copy {
+    max-width: 100% !important;
+    width: 100%;
+  }
+
+  .hero .eyebrow {
+    margin-bottom: 12px !important;
+  }
+
+  .hero h1 {
+    margin: 0 0 18px !important;
+    font-size: clamp(48px, 13vw, 70px) !important;
+    line-height: 0.92 !important;
+    letter-spacing: -0.045em !important;
+  }
+
+  .hero-text {
+    max-width: 310px !important;
+    margin-bottom: 24px !important;
+    font-size: 13px !important;
+    line-height: 1.65 !important;
+  }
+
+  .hero .primary {
+    width: auto !important;
+    max-width: 100% !important;
+    padding: 14px 20px !important;
+  }
+
+  /* Hero artwork is already hidden in your design */
+  .hero-art,
+  .hero-logo {
+    display: none !important;
+  }
+}
+
+
+/* =========================================================
+   2. DYNAMIC FILTER SECTION
+   No fixed 4-column grid.
+   New admin filters automatically flow into available space.
+   ========================================================= */
+
+.dynamic-category-grid {
+  width: 100% !important;
+
+  display: flex !important;
+  flex-wrap: wrap !important;
+
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+
+  gap: 30px 22px !important;
+
+  margin-top: 28px !important;
+}
+
+
+/* =========================================================
+   3. FILTER CARD
+   ========================================================= */
+
+.dynamic-category-grid .category-card {
+  width: 150px !important;
+  min-width: 150px !important;
+
+  height: auto !important;
+  min-height: 0 !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  border: 0 !important;
+  background: transparent !important;
+
+  text-align: center !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   4. CIRCLE IMAGE
+   ========================================================= */
+
+.dynamic-filter-circle {
+  width: 142px !important;
+  height: 142px !important;
+
+  flex: 0 0 142px !important;
+
+  margin: 0 auto 12px !important;
+
+  border-radius: 50% !important;
+
+  overflow: hidden !important;
+
+  position: relative !important;
+
+  background: #f5efec !important;
+
+  border: 1px solid rgba(80, 65, 60, 0.18) !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  box-sizing: border-box !important;
+
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease !important;
+}
+
+
+/* Uploaded admin image */
+
+.dynamic-filter-circle img {
+  width: 100% !important;
+  height: 100% !important;
+
+  display: block !important;
+
+  object-fit: cover !important;
+
+  /*
+     Slightly higher positioning works better
+     for clothing/model photographs.
+  */
+  object-position: center 32% !important;
+
+  transition: transform 0.45s ease !important;
+}
+
+
+/* =========================================================
+   5. FILTER NAME
+   ========================================================= */
+
+.dynamic-filter-name {
+  width: 100% !important;
+
+  min-height: 24px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 6px !important;
+
+  color: var(--ink) !important;
+
+  font-family: inherit !important;
+
+  font-size: 11px !important;
+
+  font-weight: 500 !important;
+
+  line-height: 1.3 !important;
+
+  text-align: center !important;
+}
+
+
+.dynamic-filter-name span {
+  max-width: 125px !important;
+
+  overflow: hidden !important;
+
+  text-overflow: ellipsis !important;
+
+  white-space: nowrap !important;
+}
+
+
+/* =========================================================
+   6. HIDE ARROW ON MOBILE-STYLE FILTERS
+   Keep it clean like the reference.
+   ========================================================= */
+
+.dynamic-filter-name svg {
+  width: 13px !important;
+  height: 13px !important;
+
+  flex: 0 0 auto !important;
+
+  transition: transform 0.25s ease !important;
+}
+
+
+/* =========================================================
+   7. PREMIUM HOVER
+   ========================================================= */
+
+.dynamic-category-grid .category-card:hover
+.dynamic-filter-circle {
+  transform: translateY(-5px) !important;
+
+  border-color: rgba(80, 65, 60, 0.35) !important;
+
+  box-shadow:
+    0 12px 28px rgba(45, 35, 30, 0.12) !important;
+}
+
+
+.dynamic-category-grid .category-card:hover
+.dynamic-filter-circle img {
+  transform: scale(1.04) !important;
+}
+
+
+.dynamic-category-grid .category-card:hover
+.dynamic-filter-name svg {
+  transform: translateX(3px) !important;
+}
+
+
+/* =========================================================
+   8. TABLET
+   ========================================================= */
+
+@media (max-width: 1000px) {
+
+  .dynamic-category-grid {
+    gap: 26px 16px !important;
+  }
+
+  .dynamic-category-grid .category-card {
+    width: 125px !important;
+    min-width: 125px !important;
+  }
+
+  .dynamic-filter-circle {
+    width: 118px !important;
+    height: 118px !important;
+    flex-basis: 118px !important;
+  }
+}
+
+
+/* =========================================================
+   9. MOBILE FILTERS
+   Horizontal scrolling like the reference.
+   No giant empty grid.
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .dynamic-category-grid {
+    width: calc(100% + 44px) !important;
+
+    margin-left: -22px !important;
+
+    padding:
+      4px
+      22px
+      12px !important;
+
+    display: flex !important;
+
+    flex-wrap: nowrap !important;
+
+    justify-content: flex-start !important;
+
+    gap: 18px !important;
+
+    overflow-x: auto !important;
+
+    overflow-y: hidden !important;
+
+    scroll-snap-type: x proximity !important;
+
+    -webkit-overflow-scrolling: touch !important;
+
+    scrollbar-width: none !important;
+  }
+
+  .dynamic-category-grid::-webkit-scrollbar {
+    display: none !important;
+  }
+
+
+  .dynamic-category-grid .category-card {
+    width: 82px !important;
+    min-width: 82px !important;
+
+    flex: 0 0 82px !important;
+
+    scroll-snap-align: start !important;
+  }
+
+
+  .dynamic-filter-circle {
+    width: 78px !important;
+    height: 78px !important;
+
+    flex-basis: 78px !important;
+
+    margin-bottom: 8px !important;
+  }
+
+
+  .dynamic-filter-name {
+    font-size: 10px !important;
+
+    min-height: 20px !important;
+
+    gap: 0 !important;
+  }
+
+
+  .dynamic-filter-name span {
+    max-width: 82px !important;
+  }
+
+
+  /* Cleaner mobile look */
+  .dynamic-filter-name svg {
+    display: none !important;
+  }
+}
+
+
+/* =========================================================
+   10. SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 390px) {
+
+  .dynamic-category-grid {
+    gap: 15px !important;
+
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+
+    width: calc(100% + 36px) !important;
+
+    margin-left: -18px !important;
+  }
+
+  .dynamic-category-grid .category-card {
+    width: 72px !important;
+    min-width: 72px !important;
+    flex-basis: 72px !important;
+  }
+
+  .dynamic-filter-circle {
+    width: 68px !important;
+    height: 68px !important;
+    flex-basis: 68px !important;
+  }
+
+  .dynamic-filter-name {
+    font-size: 9px !important;
+  }
+
+  .dynamic-filter-name span {
+    max-width: 72px !important;
+  }
+}
+
+
+/* =========================================================
+   11. CATEGORY SECTION — TIGHTER PREMIUM SPACING
+   ========================================================= */
+
+.dynamic-category-grid + * {
+  margin-top: 0 !important;
+}
+
+
+/* Remove accidental old visual sizing */
+.dynamic-category-grid .product-visual {
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+
+/* Remove old category-card padding */
+.dynamic-category-grid .category-card > div:last-child {
+  padding: 0 !important;
+}
+
+
+/* =========================================================
+   12. PREMIUM SECTION HEADING ON MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .section-head {
+    margin-bottom: 20px !important;
+  }
+
+  .section-head h2 {
+    font-size: 34px !important;
+    line-height: 1.02 !important;
+    letter-spacing: -0.035em !important;
+  }
+}
+/* =========================================================
+   IRA THE LABEL
+   PREMIUM HOMEPAGE — FINAL OVERRIDE
+   Paste EVERYTHING below at the bottom of your CSS
+   ========================================================= */
+
+
+/* =========================================================
+   GLOBAL HOMEPAGE
+   ========================================================= */
+
+.section-categories {
+  max-width: 1400px !important;
+
+  margin: 0 auto !important;
+
+  padding:
+    58px 5% 62px !important;
+
+  background: #fffdfb !important;
+}
+
+
+/* =========================================================
+   SECTION HEADER
+   ========================================================= */
+
+.section-categories .section-head {
+  margin-bottom: 28px !important;
+
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: space-between !important;
+
+  gap: 30px !important;
+}
+
+
+.section-categories .eyebrow {
+  margin: 0 0 10px !important;
+
+  font-size: 10px !important;
+
+  font-weight: 700 !important;
+
+  letter-spacing: 0.24em !important;
+
+  color: var(--muted) !important;
+}
+
+
+.section-categories .section-head h2 {
+  margin: 0 !important;
+
+  font-family: Georgia, "Times New Roman", serif !important;
+
+  font-size: clamp(36px, 4vw, 54px) !important;
+
+  font-weight: 400 !important;
+
+  line-height: 1 !important;
+
+  letter-spacing: -0.035em !important;
+
+  color: var(--ink) !important;
+}
+
+
+.section-categories .text-btn {
+  flex: 0 0 auto !important;
+
+  padding: 0 !important;
+
+  display: inline-flex !important;
+
+  align-items: center !important;
+
+  gap: 7px !important;
+
+  border: 0 !important;
+
+  background: transparent !important;
+
+  color: var(--ink) !important;
+
+  font-size: 11px !important;
+
+  white-space: nowrap !important;
+
+  cursor: pointer !important;
+}
+
+
+.section-categories .text-btn svg {
+  transition: transform .25s ease !important;
+}
+
+
+.section-categories .text-btn:hover svg {
+  transform: translateX(4px) !important;
+}
+
+
+/* =========================================================
+   DYNAMIC FILTER ROW
+   IMPORTANT:
+   FLEX = NO EMPTY GRID COLUMNS
+   ========================================================= */
+
+.dynamic-category-grid {
+  width: 100% !important;
+
+  display: flex !important;
+
+  flex-wrap: wrap !important;
+
+  justify-content: flex-start !important;
+
+  align-items: flex-start !important;
+
+  gap: 28px 22px !important;
+
+  margin: 0 !important;
+
+  padding: 0 !important;
+}
+
+
+/* =========================================================
+   FILTER CARD
+   ========================================================= */
+
+.dynamic-category-card {
+  width: 135px !important;
+
+  min-width: 135px !important;
+
+  flex: 0 0 135px !important;
+
+  padding: 0 !important;
+
+  margin: 0 !important;
+
+  border: 0 !important;
+
+  outline: none !important;
+
+  background: transparent !important;
+
+  display: flex !important;
+
+  flex-direction: column !important;
+
+  align-items: center !important;
+
+  justify-content: flex-start !important;
+
+  text-align: center !important;
+
+  cursor: pointer !important;
+}
+
+
+/* =========================================================
+   FILTER CIRCLE
+   ========================================================= */
+
+.dynamic-filter-circle {
+  width: 118px !important;
+
+  height: 118px !important;
+
+  flex: 0 0 118px !important;
+
+  margin: 0 auto 11px !important;
+
+  position: relative !important;
+
+  overflow: hidden !important;
+
+  border-radius: 50% !important;
+
+  background: #f5eeeb !important;
+
+  border: 1px solid rgba(75, 59, 52, .16) !important;
+
+  box-sizing: border-box !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+
+  justify-content: center !important;
+
+  transition:
+    transform .35s cubic-bezier(.2,.7,.2,1),
+    box-shadow .35s ease,
+    border-color .35s ease !important;
+}
+
+
+/* =========================================================
+   ADMIN UPLOADED IMAGE
+   ========================================================= */
+
+.dynamic-filter-circle img {
+  width: 100% !important;
+
+  height: 100% !important;
+
+  display: block !important;
+
+  object-fit: cover !important;
+
+  /*
+     Clothing photos normally look better
+     when the crop is slightly above center.
+  */
+  object-position: center 32% !important;
+
+  transition: transform .5s cubic-bezier(.2,.7,.2,1) !important;
+}
+
+
+/* =========================================================
+   FILTER NAME
+   ========================================================= */
+
+.dynamic-filter-name {
+  display: block !important;
+
+  width: 100% !important;
+
+  padding: 0 !important;
+
+  margin: 0 !important;
+
+  color: var(--ink) !important;
+
+  font-size: 11px !important;
+
+  font-weight: 500 !important;
+
+  line-height: 1.3 !important;
+
+  text-align: center !important;
+
+  text-transform: none !important;
+
+  white-space: nowrap !important;
+
+  overflow: hidden !important;
+
+  text-overflow: ellipsis !important;
+}
+
+
+/* =========================================================
+   PREMIUM HOVER
+   ========================================================= */
+
+.dynamic-category-card:hover .dynamic-filter-circle {
+  transform: translateY(-5px) !important;
+
+  border-color: rgba(80, 60, 50, .30) !important;
+
+  box-shadow:
+    0 12px 30px rgba(50, 38, 31, .12) !important;
+}
+
+
+.dynamic-category-card:hover .dynamic-filter-circle img {
+  transform: scale(1.045) !important;
+}
+
+
+/* =========================================================
+   DESKTOP — MORE BREATHING ROOM WITHOUT BLANK SPACE
+   ========================================================= */
+
+@media (min-width: 1200px) {
+
+  .section-categories {
+    padding-top: 64px !important;
+    padding-bottom: 68px !important;
+  }
+
+  .dynamic-category-grid {
+    gap: 30px 26px !important;
+  }
+
+  .dynamic-category-card {
+    width: 140px !important;
+    min-width: 140px !important;
+    flex-basis: 140px !important;
+  }
+
+  .dynamic-filter-circle {
+    width: 124px !important;
+    height: 124px !important;
+    flex-basis: 124px !important;
+  }
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1000px) {
+
+  .section-categories {
+    padding:
+      48px 4% 52px !important;
+  }
+
+  .dynamic-category-grid {
+    gap: 25px 16px !important;
+  }
+
+  .dynamic-category-card {
+    width: 118px !important;
+    min-width: 118px !important;
+    flex-basis: 118px !important;
+  }
+
+  .dynamic-filter-circle {
+    width: 104px !important;
+    height: 104px !important;
+    flex-basis: 104px !important;
+  }
+}
+
+
+/* =========================================================
+   MOBILE — NO GIANT EMPTY SPACE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  /* -------------------------
+     HERO
+     ------------------------- */
+
+  .hero {
+    min-height: 0 !important;
+
+    height: auto !important;
+
+    padding:
+      42px 20px 34px !important;
+
+    display: grid !important;
+
+    grid-template-columns: 1fr !important;
+
+    align-items: center !important;
+  }
+
+
+  .hero-copy {
+    max-width: 100% !important;
+
+    width: 100% !important;
+  }
+
+
+  .hero h1 {
+    margin:
+      0 0 18px !important;
+
+    font-size:
+      clamp(47px, 13vw, 66px) !important;
+
+    line-height:
+      .92 !important;
+
+    letter-spacing:
+      -.045em !important;
+  }
+
+
+  .hero-text {
+    max-width: 315px !important;
+
+    margin:
+      0 0 22px !important;
+
+    font-size: 12px !important;
+
+    line-height: 1.65 !important;
+  }
+
+
+  .hero .primary {
+    min-width: 0 !important;
+
+    width: auto !important;
+
+    min-height: 46px !important;
+
+    padding:
+      0 18px !important;
+
+    font-size: 11px !important;
+  }
+
+
+  /* Don't reserve space for the hidden artwork */
+  .hero-art,
+  .hero-logo {
+    display: none !important;
+  }
+
+
+  /* -------------------------
+     CATEGORY SECTION
+     ------------------------- */
+
+  .section-categories {
+    padding:
+      38px 18px 42px !important;
+
+    overflow: hidden !important;
+  }
+
+
+  .section-categories .section-head {
+    margin-bottom: 20px !important;
+
+    align-items: flex-start !important;
+
+    gap: 12px !important;
+  }
+
+
+  .section-categories .eyebrow {
+    margin-bottom: 9px !important;
+
+    font-size: 9px !important;
+
+    letter-spacing: .22em !important;
+  }
+
+
+  .section-categories .section-head h2 {
+    font-size: 32px !important;
+
+    line-height: 1.02 !important;
+
+    max-width: 270px !important;
+  }
+
+
+  .section-categories .text-btn {
+    margin-top: 3px !important;
+
+    font-size: 10px !important;
+  }
+
+
+  /*
+     Horizontal scrolling:
+     filters never create a giant empty grid.
+  */
+
+  .dynamic-category-grid {
+    width:
+      calc(100% + 36px) !important;
+
+    margin-left:
+      -18px !important;
+
+    padding:
+      4px 18px 12px !important;
+
+    display: flex !important;
+
+    flex-wrap: nowrap !important;
+
+    gap: 17px !important;
+
+    overflow-x: auto !important;
+
+    overflow-y: hidden !important;
+
+    justify-content: flex-start !important;
+
+    scrollbar-width: none !important;
+
+    -webkit-overflow-scrolling: touch !important;
+
+    scroll-snap-type: x proximity !important;
+  }
+
+
+  .dynamic-category-grid::-webkit-scrollbar {
+    display: none !important;
+  }
+
+
+  .dynamic-category-card {
+    width: 78px !important;
+
+    min-width: 78px !important;
+
+    flex: 0 0 78px !important;
+
+    scroll-snap-align: start !important;
+  }
+
+
+  .dynamic-filter-circle {
+    width: 74px !important;
+
+    height: 74px !important;
+
+    flex-basis: 74px !important;
+
+    margin-bottom: 8px !important;
+  }
+
+
+  .dynamic-filter-name {
+    font-size: 9.5px !important;
+  }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 390px) {
+
+  .hero {
+    padding:
+      34px 17px 30px !important;
+  }
+
+
+  .hero h1 {
+    font-size:
+      clamp(43px, 13vw, 57px) !important;
+  }
+
+
+  .section-categories {
+    padding:
+      32px 16px 38px !important;
+  }
+
+
+  .section-categories .section-head h2 {
+    font-size: 29px !important;
+  }
+
+
+  .dynamic-category-grid {
+    width:
+      calc(100% + 32px) !important;
+
+    margin-left:
+      -16px !important;
+
+    padding-left: 16px !important;
+
+    padding-right: 16px !important;
+
+    gap: 14px !important;
+  }
+
+
+  .dynamic-category-card {
+    width: 70px !important;
+
+    min-width: 70px !important;
+
+    flex-basis: 70px !important;
+  }
+
+
+  .dynamic-filter-circle {
+    width: 66px !important;
+
+    height: 66px !important;
+
+    flex-basis: 66px !important;
+  }
+
+
+  .dynamic-filter-name {
+    font-size: 9px !important;
+  }
+}
+
+
+/* =========================================================
+   REMOVE OLD CATEGORY HEIGHTS
+   ========================================================= */
+
+.dynamic-category-grid .product-visual,
+.dynamic-category-grid .category-card {
+  height: auto !important;
+
+  min-height: 0 !important;
+}
+
+
+/* =========================================================
+   PREVENT OLD SECTION SPACING FROM CREATING GAPS
+   ========================================================= */
+
+.section-categories > * {
+  position: relative;
+}
+
+
+/* =========================================================
+   PREMIUM SUBTLE DIVIDER
+   ========================================================= */
+
+.section-categories {
+  border-top:
+    1px solid rgba(60, 50, 45, .07) !important;
+}/* =========================================================
+   IRA THE LABEL — KILL HOMEPAGE EMPTY SPACE
+   FINAL OVERRIDE
+   ========================================================= */
+
+
+/* ---------- PAGE FLOW ---------- */
+
+body {
+  overflow-x: hidden !important;
+}
+
+#root {
+  width: 100% !important;
+}
+
+
+/* =========================================================
+   HEADER
+   Make sure content does NOT slide underneath it
+   ========================================================= */
+
+.header {
+  position: relative !important;
+  z-index: 100 !important;
+}
+
+
+/* =========================================================
+   HERO
+   REMOVE ALL OLD HEIGHT/PADDING THAT CREATES SPACE
+   ========================================================= */
+
+.hero {
+  min-height: 0 !important;
+  height: auto !important;
+
+  padding: 58px 7% 50px !important;
+
+  margin: 0 !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* Desktop hero */
+@media (min-width: 1001px) {
+
+  .hero {
+    min-height: 520px !important;
+    max-height: 600px !important;
+  }
+
+}
+
+
+/* Tablet */
+@media (max-width: 1000px) {
+
+  .hero {
+    min-height: 0 !important;
+
+    padding:
+      55px 6% 42px !important;
+  }
+
+}
+
+
+/* Mobile */
+@media (max-width: 700px) {
+
+  .hero {
+    min-height: 0 !important;
+
+    height: auto !important;
+
+    padding:
+      38px 20px 30px !important;
+
+    display: block !important;
+  }
+
+  .hero-copy {
+    width: 100% !important;
+
+    max-width: 100% !important;
+  }
+
+}
+
+
+/* =========================================================
+   REMOVE HIDDEN HERO ART FROM TAKING SPACE
+   ========================================================= */
+
+.hero-art,
+.hero-logo {
+  display: none !important;
+
+  width: 0 !important;
+  height: 0 !important;
+
+  min-height: 0 !important;
+}
+
+
+/* =========================================================
+   MARQUEE
+   ========================================================= */
+
+.marquee {
+  position: relative !important;
+
+  height: auto !important;
+
+  min-height: 50px !important;
+
+  padding:
+    15px 5% !important;
+
+  margin: 0 !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* =========================================================
+   THIS IS THE IMPORTANT PART
+   SHOP BY MOOD SECTION
+   ========================================================= */
+
+.section-categories,
+.section.section-categories,
+section.section-categories {
+  position: relative !important;
+
+  width: 100% !important;
+
+  max-width: 1400px !important;
+
+  height: auto !important;
+
+  min-height: 0 !important;
+
+  margin: 0 auto !important;
+
+  padding:
+    42px 5% 45px !important;
+
+  box-sizing: border-box !important;
+
+  overflow: visible !important;
+}
+
+
+/* =========================================================
+   REMOVE ANY OLD CATEGORY HEIGHT
+   ========================================================= */
+
+.section-categories .category-grid,
+.section-categories .dynamic-category-grid {
+  height: auto !important;
+
+  min-height: 0 !important;
+
+  max-height: none !important;
+
+  margin-top: 0 !important;
+
+  margin-bottom: 0 !important;
+}
+
+
+/* =========================================================
+   SECTION HEADER
+   ========================================================= */
+
+.section-categories .section-head {
+  height: auto !important;
+
+  min-height: 0 !important;
+
+  margin:
+    0 0 24px !important;
+
+  padding: 0 !important;
+
+  display: flex !important;
+
+  justify-content: space-between !important;
+
+  align-items: flex-end !important;
+}
+
+
+/* =========================================================
+   DYNAMIC FILTERS
+   NO FIXED HEIGHT
+   NO EMPTY GRID
+   ========================================================= */
+
+.dynamic-category-grid {
+  width: 100% !important;
+
+  height: auto !important;
+
+  min-height: 0 !important;
+
+  max-height: none !important;
+
+  display: flex !important;
+
+  flex-wrap: wrap !important;
+
+  align-items: flex-start !important;
+
+  justify-content: flex-start !important;
+
+  gap: 25px 20px !important;
+
+  margin: 0 !important;
+
+  padding: 0 !important;
+}
+
+
+/* =========================================================
+   FILTER CARD
+   ========================================================= */
+
+.dynamic-category-card {
+  height: auto !important;
+
+  min-height: 0 !important;
+
+  max-height: none !important;
+
+  width: 125px !important;
+
+  min-width: 125px !important;
+
+  flex: 0 0 125px !important;
+
+  padding: 0 !important;
+
+  margin: 0 !important;
+
+  display: flex !important;
+
+  flex-direction: column !important;
+
+  align-items: center !important;
+
+  justify-content: flex-start !important;
+
+  border: 0 !important;
+
+  background: transparent !important;
+}
+
+
+/* =========================================================
+   CIRCLE
+   ========================================================= */
+
+.dynamic-filter-circle {
+  width: 108px !important;
+
+  height: 108px !important;
+
+  min-height: 108px !important;
+
+  max-height: 108px !important;
+
+  flex: 0 0 108px !important;
+
+  margin:
+    0 auto 9px !important;
+
+  padding: 0 !important;
+
+  overflow: hidden !important;
+
+  border-radius: 50% !important;
+
+  box-sizing: border-box !important;
+
+  background: #f5efeb !important;
+
+  border:
+    1px solid rgba(60, 45, 38, .15) !important;
+}
+
+
+.dynamic-filter-circle img {
+  width: 100% !important;
+
+  height: 100% !important;
+
+  max-width: none !important;
+
+  max-height: none !important;
+
+  display: block !important;
+
+  object-fit: cover !important;
+
+  object-position: center 30% !important;
+}
+
+
+/* =========================================================
+   FILTER NAME
+   ========================================================= */
+
+.dynamic-filter-name {
+  width: 100% !important;
+
+  height: auto !important;
+
+  min-height: 0 !important;
+
+  margin: 0 !important;
+
+  padding: 0 !important;
+
+  display: block !important;
+
+  text-align: center !important;
+
+  font-size: 10px !important;
+
+  line-height: 1.3 !important;
+
+  white-space: nowrap !important;
+
+  overflow: hidden !important;
+
+  text-overflow: ellipsis !important;
+}
+
+
+/* =========================================================
+   MOBILE — THIS REMOVES THE MASSIVE GAP
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  /* Hero becomes compact */
+  .hero {
+    min-height: 0 !important;
+
+    height: auto !important;
+
+    padding:
+      35px 18px 30px !important;
+  }
+
+
+  /* Marquee stays tight */
+  .marquee {
+    min-height: 46px !important;
+
+    padding:
+      13px 18px !important;
+  }
+
+
+  /*
+     Shop by Mood starts immediately
+     after marquee.
+  */
+
+  .section-categories,
+  .section.section-categories,
+  section.section-categories {
+    min-height: 0 !important;
+
+    height: auto !important;
+
+    padding:
+      30px 18px 35px !important;
+
+    margin: 0 !important;
+  }
+
+
+  .section-categories .section-head {
+    margin-bottom: 18px !important;
+
+    align-items: flex-start !important;
+  }
+
+
+  .section-categories .section-head h2 {
+    font-size: 30px !important;
+
+    line-height: 1.02 !important;
+  }
+
+
+  /*
+     Horizontal row.
+     It ONLY takes the height of the filters.
+  */
+
+  .dynamic-category-grid {
+    width:
+      calc(100% + 36px) !important;
+
+    height: auto !important;
+
+    min-height: 0 !important;
+
+    margin-left: -18px !important;
+
+    padding:
+      2px 18px 8px !important;
+
+    display: flex !important;
+
+    flex-wrap: nowrap !important;
+
+    gap: 17px !important;
+
+    overflow-x: auto !important;
+
+    overflow-y: hidden !important;
+
+    align-items: flex-start !important;
+
+    justify-content: flex-start !important;
+
+    scrollbar-width: none !important;
+  }
+
+
+  .dynamic-category-grid::-webkit-scrollbar {
+    display: none !important;
+  }
+
+
+  .dynamic-category-card {
+    width: 76px !important;
+
+    min-width: 76px !important;
+
+    flex: 0 0 76px !important;
+
+    height: auto !important;
+
+    min-height: 0 !important;
+  }
+
+
+  .dynamic-filter-circle {
+    width: 72px !important;
+
+    height: 72px !important;
+
+    min-height: 72px !important;
+
+    max-height: 72px !important;
+
+    flex-basis: 72px !important;
+
+    margin-bottom: 7px !important;
+  }
+
+
+  .dynamic-filter-name {
+    font-size: 9px !important;
+
+    line-height: 1.25 !important;
+  }
+}
+
+
+/* =========================================================
+   SMALL PHONE
+   ========================================================= */
+
+@media (max-width: 390px) {
+
+  .section-categories {
+    padding:
+      27px 16px 32px !important;
+  }
+
+
+  .dynamic-category-grid {
+    width:
+      calc(100% + 32px) !important;
+
+    margin-left: -16px !important;
+
+    padding-left: 16px !important;
+
+    padding-right: 16px !important;
+
+    gap: 14px !important;
+  }
+
+
+  .dynamic-category-card {
+    width: 68px !important;
+
+    min-width: 68px !important;
+
+    flex-basis: 68px !important;
+  }
+
+
+  .dynamic-filter-circle {
+    width: 64px !important;
+
+    height: 64px !important;
+
+    min-height: 64px !important;
+
+    max-height: 64px !important;
+
+    flex-basis: 64px !important;
+  }
+}
+
+
+/* =========================================================
+   CRITICAL: REMOVE OLD 390px CATEGORY VISUAL
+   ========================================================= */
+
+.category-grid .category-card .product-visual {
+  height: auto !important;
+
+  min-height: 0 !important;
+}
+
+
+/* =========================================================
+   CRITICAL: REMOVE OLD MOBILE 260px CATEGORY VISUAL
+   ========================================================= */
+
+@media (max-width: 650px) {
+
+  .category-grid .category-card .product-visual {
+    height: auto !important;
+
+    min-height: 0 !important;
+  }
+
+}
+
+
+/* =========================================================
+   NO EXTRA BOTTOM SPACE
+   ========================================================= */
+
+.section-categories .dynamic-category-grid {
+  margin-bottom: 0 !important;
+}
+
+.section-categories .dynamic-category-card:last-child {
+  margin-bottom: 0 !important;
+}
+/* =========================================================
+   IRA THE LABEL
+   PREMIUM CIRCULAR FILTER SYSTEM
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   HOMEPAGE FILTER SECTION
+   --------------------------------------------------------- */
+
+.section-categories {
+  width: 100% !important;
+  max-width: 1400px !important;
+
+  margin: 0 auto !important;
+
+  padding: 48px 5% 50px !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* ---------------------------------------------------------
+   SECTION HEADER
+   --------------------------------------------------------- */
+
+.section-categories .section-head {
+  display: flex !important;
+
+  align-items: flex-end !important;
+
+  justify-content: space-between !important;
+
+  margin: 0 0 28px !important;
+
+  padding: 0 !important;
+}
+
+
+.section-categories .eyebrow {
+  margin: 0 0 9px !important;
+
+  font-size: 10px !important;
+
+  font-weight: 700 !important;
+
+  letter-spacing: .24em !important;
+
+  color: var(--muted) !important;
+}
+
+
+.section-categories h2 {
+  margin: 0 !important;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif !important;
+
+  font-size:
+    clamp(36px, 4vw, 54px) !important;
+
+  font-weight: 400 !important;
+
+  line-height: 1 !important;
+
+  letter-spacing: -.04em !important;
+
+  color: var(--ink) !important;
+}
+
+
+/* ---------------------------------------------------------
+   FILTER ROW
+   FLEX = NO FAKE EMPTY GRID SPACE
+   --------------------------------------------------------- */
+
+.dynamic-category-grid {
+
+  width: 100% !important;
+
+  height: auto !important;
+
+  min-height: 0 !important;
+
+  display: flex !important;
+
+  flex-wrap: wrap !important;
+
+  align-items: flex-start !important;
+
+  justify-content: flex-start !important;
+
+  gap: 26px 22px !important;
+
+  margin: 0 !important;
+
+  padding: 0 !important;
+}
+
+
+/* ---------------------------------------------------------
+   FILTER ITEM
+   --------------------------------------------------------- */
+
+.dynamic-category-card {
+
+  width: 112px !important;
+
+  min-width: 112px !important;
+
+  max-width: 112px !important;
+
+  flex: 0 0 112px !important;
+
+  height: auto !important;
+
+  min-height: 0 !important;
+
+  padding: 0 !important;
+
+  margin: 0 !important;
+
+  border: 0 !important;
+
+  outline: 0 !important;
+
+  background: transparent !important;
+
+  display: flex !important;
+
+  flex-direction: column !important;
+
+  align-items: center !important;
+
+  justify-content: flex-start !important;
+
+  gap: 0 !important;
+
+  cursor: pointer !important;
+
+  color: var(--ink) !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* ---------------------------------------------------------
+   THE ACTUAL CIRCLE
+   --------------------------------------------------------- */
+
+.dynamic-filter-circle {
+
+  position: relative !important;
+
+  width: 94px !important;
+
+  height: 94px !important;
+
+  min-width: 94px !important;
+
+  min-height: 94px !important;
+
+  max-width: 94px !important;
+
+  max-height: 94px !important;
+
+  flex: 0 0 94px !important;
+
+  margin: 0 0 10px !important;
+
+  padding: 0 !important;
+
+  overflow: hidden !important;
+
+  border-radius: 50% !important;
+
+  background: #f7efeb !important;
+
+  border: 1px solid rgba(68, 52, 45, .14) !important;
+
+  box-sizing: border-box !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+
+  justify-content: center !important;
+
+  transition:
+    transform .28s ease,
+    box-shadow .28s ease,
+    border-color .28s ease !important;
+}
+
+
+/* ---------------------------------------------------------
+   IMAGE INSIDE CIRCLE
+   --------------------------------------------------------- */
+
+.dynamic-filter-circle img {
+
+  width: 100% !important;
+
+  height: 100% !important;
+
+  min-width: 100% !important;
+
+  min-height: 100% !important;
+
+  max-width: none !important;
+
+  max-height: none !important;
+
+  display: block !important;
+
+  object-fit: cover !important;
+
+  object-position: center 28% !important;
+
+  border-radius: 50% !important;
+
+  transition:
+    transform .4s ease !important;
+}
+
+
+/* ---------------------------------------------------------
+   FILTER NAME
+   --------------------------------------------------------- */
+
+.dynamic-filter-name {
+
+  display: block !important;
+
+  width: 100% !important;
+
+  max-width: 112px !important;
+
+  margin: 0 !important;
+
+  padding: 0 !important;
+
+  color: var(--ink) !important;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif !important;
+
+  font-size: 10px !important;
+
+  font-weight: 500 !important;
+
+  line-height: 1.3 !important;
+
+  text-align: center !important;
+
+  white-space: nowrap !important;
+
+  overflow: hidden !important;
+
+  text-overflow: ellipsis !important;
+}
+
+
+/* ---------------------------------------------------------
+   HOVER
+   --------------------------------------------------------- */
+
+.dynamic-category-card:hover
+.dynamic-filter-circle {
+
+  transform: translateY(-4px) !important;
+
+  border-color:
+    rgba(68, 52, 45, .28) !important;
+
+  box-shadow:
+    0 10px 24px
+    rgba(45, 34, 29, .12) !important;
+}
+
+
+.dynamic-category-card:hover
+.dynamic-filter-circle img {
+
+  transform: scale(1.045) !important;
+}
+
+
+/* ---------------------------------------------------------
+   ACTIVE FILTER
+   --------------------------------------------------------- */
+
+.dynamic-category-card.active
+.dynamic-filter-circle,
+
+.chips button.active
+.dynamic-filter-circle {
+
+  border:
+    2px solid var(--ink) !important;
+
+  box-shadow:
+    0 0 0 4px
+    rgba(234, 208, 208, .42) !important;
+}
+
+
+/* =========================================================
+   SHOP FILTERS
+   ========================================================= */
+
+.chips {
+
+  width: 100% !important;
+
+  height: auto !important;
+
+  min-height: 0 !important;
+
+  display: flex !important;
+
+  flex-wrap: wrap !important;
+
+  align-items: flex-start !important;
+
+  justify-content: flex-start !important;
+
+  gap: 24px 20px !important;
+
+  margin: 0 !important;
+
+  padding: 0 !important;
+}
+
+
+.chips button {
+
+  width: 100px !important;
+
+  min-width: 100px !important;
+
+  height: auto !important;
+
+  min-height: 0 !important;
+
+  padding: 0 !important;
+
+  margin: 0 !important;
+
+  border: 0 !important;
+
+  background: transparent !important;
+
+  display: flex !important;
+
+  flex-direction: column !important;
+
+  align-items: center !important;
+
+  gap: 0 !important;
+
+  color: var(--ink) !important;
+
+  cursor: pointer !important;
+}
+
+
+.chips button .dynamic-filter-circle {
+
+  width: 82px !important;
+
+  height: 82px !important;
+
+  min-width: 82px !important;
+
+  min-height: 82px !important;
+
+  flex-basis: 82px !important;
+}
+
+
+.chips button .dynamic-filter-name {
+
+  width: 100% !important;
+
+  max-width: 100px !important;
+
+  margin-top: 8px !important;
+}
+
+
+/* ALL CIRCLE */
+
+.filter-all-circle {
+
+  background: var(--ink) !important;
+
+  color: #fff !important;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif !important;
+
+  font-size: 11px !important;
+
+  letter-spacing: .14em !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+
+  justify-content: center !important;
+}
+
+
+/* =========================================================
+   DISCOUNT / SALE BADGE
+   ========================================================= */
+
+.product-media {
+  position: relative !important;
+}
+
+
+/* Soft pink discount badge */
+
+.product-media .discount-badge {
+
+  position: absolute !important;
+
+  left: 10px !important;
+
+  bottom: 10px !important;
+
+  z-index: 8 !important;
+
+  padding: 5px 8px !important;
+
+  border-radius: 999px !important;
+
+  background:
+    #f8e6e5 !important;
+
+  color:
+    #8b6262 !important;
+
+  border:
+    1px solid rgba(139, 98, 98, .10) !important;
+
+  font-size: 8px !important;
+
+  font-weight: 600 !important;
+
+  line-height: 1 !important;
+
+  letter-spacing: .05em !important;
+
+  white-space: nowrap !important;
+
+  box-shadow:
+    0 3px 10px
+    rgba(100, 70, 70, .05) !important;
+}
+
+
+/* Sale badge */
+
+.product-media .sale-badge {
+
+  position: absolute !important;
+
+  left: 10px !important;
+
+  bottom: 10px !important;
+
+  z-index: 8 !important;
+
+  padding: 5px 9px !important;
+
+  border-radius: 999px !important;
+
+  background:
+    #f7e3e2 !important;
+
+  color:
+    #8c6262 !important;
+
+  font-size: 8px !important;
+
+  font-weight: 600 !important;
+
+  letter-spacing: .07em !important;
+
+  line-height: 1 !important;
+}
+
+
+/* =========================================================
+   PRODUCT PRICE AREA
+   ========================================================= */
+
+.product-info > div {
+
+  display: flex !important;
+
+  align-items: center !important;
+
+  flex-wrap: wrap !important;
+
+  gap: 8px !important;
+
+  margin-top: 5px !important;
+}
+
+
+.product-info strong {
+
+  font-weight: 600 !important;
+}
+
+
+.product-info del {
+
+  color: #aaa !important;
+
+  font-size: 9px !important;
+
+  text-decoration-thickness: 1px !important;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .section-categories {
+
+    padding:
+      34px 18px 38px !important;
+
+  }
+
+
+  .section-categories .section-head {
+
+    margin-bottom: 19px !important;
+
+  }
+
+
+  .section-categories h2 {
+
+    max-width: 270px !important;
+
+    font-size: 31px !important;
+
+    line-height: 1.02 !important;
+
+  }
+
+
+  .section-categories .eyebrow {
+
+    font-size: 9px !important;
+
+  }
+
+
+  /*
+     Mobile filters become a compact
+     horizontal Instagram-style row.
+  */
+
+  .dynamic-category-grid {
+
+    width:
+      calc(100% + 36px) !important;
+
+    margin-left:
+      -18px !important;
+
+    padding:
+      3px 18px 10px !important;
+
+    display: flex !important;
+
+    flex-wrap: nowrap !important;
+
+    gap: 16px !important;
+
+    overflow-x: auto !important;
+
+    overflow-y: hidden !important;
+
+    scrollbar-width: none !important;
+
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+
+  .dynamic-category-grid::-webkit-scrollbar {
+
+    display: none !important;
+
+  }
+
+
+  .dynamic-category-card {
+
+    width: 72px !important;
+
+    min-width: 72px !important;
+
+    max-width: 72px !important;
+
+    flex: 0 0 72px !important;
+
+  }
+
+
+  .dynamic-filter-circle {
+
+    width: 68px !important;
+
+    height: 68px !important;
+
+    min-width: 68px !important;
+
+    min-height: 68px !important;
+
+    max-width: 68px !important;
+
+    max-height: 68px !important;
+
+    flex-basis: 68px !important;
+
+    margin-bottom: 7px !important;
+
+  }
+
+
+  .dynamic-filter-name {
+
+    max-width: 72px !important;
+
+    font-size: 9px !important;
+
+  }
+
+
+  /* Shop filters */
+
+  .chips {
+
+    gap: 20px 12px !important;
+
+  }
+
+
+  .chips button {
+
+    width: 72px !important;
+
+    min-width: 72px !important;
+
+  }
+
+
+  .chips button .dynamic-filter-circle {
+
+    width: 64px !important;
+
+    height: 64px !important;
+
+    min-width: 64px !important;
+
+    min-height: 64px !important;
+
+    flex-basis: 64px !important;
+
+  }
+
+
+  .chips button .dynamic-filter-name {
+
+    max-width: 72px !important;
+
+    margin-top: 7px !important;
+
+    font-size: 9px !important;
+
+  }
+
+
+  /* Smaller discount badges */
+
+  .product-media .discount-badge,
+  .product-media .sale-badge {
+
+    left: 7px !important;
+
+    bottom: 7px !important;
+
+    padding: 4px 7px !important;
+
+    font-size: 7px !important;
+
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 390px) {
+
+  .section-categories {
+
+    padding:
+      29px 16px 34px !important;
+
+  }
+
+
+  .dynamic-category-grid {
+
+    width:
+      calc(100% + 32px) !important;
+
+    margin-left: -16px !important;
+
+    padding-left: 16px !important;
+
+    padding-right: 16px !important;
+
+    gap: 13px !important;
+
+  }
+
+
+  .dynamic-category-card {
+
+    width: 67px !important;
+
+    min-width: 67px !important;
+
+    flex-basis: 67px !important;
+
+  }
+
+
+  .dynamic-filter-circle {
+
+    width: 63px !important;
+
+    height: 63px !important;
+
+    min-width: 63px !important;
+
+    min-height: 63px !important;
+
+    flex-basis: 63px !important;
+
+  }
+
+
+  .dynamic-filter-name {
+
+    font-size: 8.5px !important;
+
+  }
+
+}
+/* =========================================================
+   FINAL FIX — SHOP BY MOOD MUST ONLY USE THE SPACE IT NEEDS
+   ========================================================= */
+
+/* Kill any old fixed/minimum height */
+.section-categories {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+
+  padding-top: 42px !important;
+  padding-bottom: 32px !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* Header takes only its natural height */
+.section-categories .section-head {
+  height: auto !important;
+  min-height: 0 !important;
+
+  margin-top: 0 !important;
+  margin-bottom: 22px !important;
+
+  padding: 0 !important;
+}
+
+
+/* =========================================================
+   FILTERS — PACK THEM TOGETHER
+   ========================================================= */
+
+.section-categories .dynamic-category-grid {
+  display: flex !important;
+
+  flex-wrap: wrap !important;
+
+  justify-content: flex-start !important;
+
+  align-items: flex-start !important;
+
+  align-content: flex-start !important;
+
+  width: 100% !important;
+
+  height: auto !important;
+
+  min-height: 0 !important;
+
+  max-height: none !important;
+
+  margin: 0 !important;
+
+  padding: 0 !important;
+
+  gap: 18px 18px !important;
+}
+
+
+/* Each filter only takes the space it actually needs */
+.section-categories .dynamic-category-card {
+  position: relative !important;
+
+  width: 100px !important;
+
+  min-width: 100px !important;
+
+  max-width: 100px !important;
+
+  height: auto !important;
+
+  min-height: 0 !important;
+
+  max-height: none !important;
+
+  flex: 0 0 100px !important;
+
+  margin: 0 !important;
+
+  padding: 0 !important;
+}
+
+
+/* Circle */
+.section-categories .dynamic-filter-circle {
+  width: 88px !important;
+
+  height: 88px !important;
+
+  min-width: 88px !important;
+
+  min-height: 88px !important;
+
+  max-width: 88px !important;
+
+  max-height: 88px !important;
+
+  flex: 0 0 88px !important;
+
+  margin: 0 auto 8px !important;
+
+  overflow: hidden !important;
+
+  border-radius: 50% !important;
+}
+
+
+/* Image fills the circle */
+.section-categories .dynamic-filter-circle img {
+  width: 100% !important;
+
+  height: 100% !important;
+
+  min-width: 100% !important;
+
+  min-height: 100% !important;
+
+  display: block !important;
+
+  object-fit: cover !important;
+
+  object-position: center center !important;
+
+  border-radius: 50% !important;
+}
+
+
+/* Name */
+.section-categories .dynamic-filter-name {
+  width: 100% !important;
+
+  height: auto !important;
+
+  min-height: 0 !important;
+
+  margin: 0 !important;
+
+  padding: 0 !important;
+
+  text-align: center !important;
+
+  white-space: nowrap !important;
+
+  overflow: hidden !important;
+
+  text-overflow: ellipsis !important;
+}
+
+
+/* =========================================================
+   IMPORTANT:
+   THE NEXT SECTION STARTS IMMEDIATELY
+   ========================================================= */
+
+.section-categories + section {
+  margin-top: 0 !important;
+
+  padding-top: 42px !important;
+
+  min-height: 0 !important;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .section-categories {
+    height: auto !important;
+
+    min-height: 0 !important;
+
+    padding:
+      28px 18px 25px !important;
+  }
+
+
+  .section-categories .section-head {
+    margin-bottom: 17px !important;
+  }
+
+
+  /*
+     Horizontal filters.
+     They stay tightly packed.
+     If more filters are added,
+     they simply continue horizontally.
+  */
+
+  .section-categories .dynamic-category-grid {
+    width:
+      calc(100% + 36px) !important;
+
+    margin-left: -18px !important;
+
+    padding:
+      2px 18px 7px !important;
+
+    display: flex !important;
+
+    flex-wrap: nowrap !important;
+
+    justify-content: flex-start !important;
+
+    align-items: flex-start !important;
+
+    gap: 14px !important;
+
+    overflow-x: auto !important;
+
+    overflow-y: hidden !important;
+
+    scrollbar-width: none !important;
+
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+
+  .section-categories .dynamic-category-grid::-webkit-scrollbar {
+    display: none !important;
+  }
+
+
+  .section-categories .dynamic-category-card {
+    width: 68px !important;
+
+    min-width: 68px !important;
+
+    max-width: 68px !important;
+
+    flex: 0 0 68px !important;
+
+    height: auto !important;
+
+    min-height: 0 !important;
+  }
+
+
+  .section-categories .dynamic-filter-circle {
+    width: 62px !important;
+
+    height: 62px !important;
+
+    min-width: 62px !important;
+
+    min-height: 62px !important;
+
+    max-width: 62px !important;
+
+    max-height: 62px !important;
+
+    flex-basis: 62px !important;
+
+    margin-bottom: 6px !important;
+  }
+
+
+  .section-categories .dynamic-filter-name {
+    font-size: 9px !important;
+
+    line-height: 1.2 !important;
+  }
+
+
+  /* New Arrivals comes right after filters */
+  .section-categories + section {
+    padding-top: 30px !important;
+
+    margin-top: 0 !important;
+  }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONE
+   ========================================================= */
+
+@media (max-width: 390px) {
+
+  .section-categories {
+    padding:
+      25px 16px 22px !important;
+  }
+
+
+  .section-categories .dynamic-category-grid {
+    width:
+      calc(100% + 32px) !important;
+
+    margin-left: -16px !important;
+
+    padding-left: 16px !important;
+
+    padding-right: 16px !important;
+
+    gap: 12px !important;
+  }
+
+
+  .section-categories .dynamic-category-card {
+    width: 64px !important;
+
+    min-width: 64px !important;
+
+    flex-basis: 64px !important;
+  }
+
+
+  .section-categories .dynamic-filter-circle {
+    width: 59px !important;
+
+    height: 59px !important;
+
+    min-width: 59px !important;
+
+    min-height: 59px !important;
+
+    flex-basis: 59px !important;
+  }
+}
+/* =====================================================
+   SHOP BY MOOD — CLEAN PREMIUM HEADING
+   ===================================================== */
+
+.section-categories .section-head h2,
+.section-categories h2 {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 28px !important;
+  font-weight: 400 !important;
+  line-height: 1.15 !important;
+  letter-spacing: -0.02em !important;
+
+  white-space: nowrap !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  color: var(--ink) !important;
+}
+
+
+/* Small label above the heading */
+.section-categories .eyebrow,
+.section-categories .section-kicker {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+
+  margin-bottom: 10px !important;
+}
+
+
+/* Keep heading + View All nicely aligned */
+.section-categories .section-head {
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: space-between !important;
+  gap: 20px !important;
+}
+
+
+/* View all */
+.section-categories .section-head a,
+.section-categories .section-head button {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  white-space: nowrap !important;
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (max-width: 700px) {
+
+  .section-categories .section-head {
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .section-categories .section-head h2,
+  .section-categories h2 {
+    font-size: 23px !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
+  }
+
+  .section-categories .eyebrow,
+  .section-categories .section-kicker {
+    font-size: 9px !important;
+    letter-spacing: 0.18em !important;
+    margin-bottom: 7px !important;
+  }
+
+  .section-categories .section-head a,
+  .section-categories .section-head button {
+    font-size: 10px !important;
+  }
+}
+
+
+/* Very small phones */
+@media (max-width: 390px) {
+
+  .section-categories .section-head h2,
+  .section-categories h2 {
+    font-size: 20px !important;
+  }
+}
+/* =========================================================
+   IRA THE LABEL — PREMIUM ADMIN FILTER MANAGEMENT
+   Paste at the VERY BOTTOM of styles.css
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   FILTER SECTION
+   --------------------------------------------------------- */
+
+.filters-section {
+  margin-top: 28px !important;
+  padding: 30px !important;
+
+  background: #faf8f6 !important;
+
+  border: 1px solid rgba(45, 40, 38, 0.08) !important;
+  border-radius: 24px !important;
+
+  box-shadow:
+    0 12px 35px rgba(45, 40, 38, 0.045) !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* Header */
+.filters-section .section-header {
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: space-between !important;
+
+  gap: 24px !important;
+
+  margin-bottom: 26px !important;
+}
+
+
+.filters-section .section-header h2 {
+  margin: 7px 0 7px !important;
+
+  font-family: Georgia, "Times New Roman", serif !important;
+
+  font-size: 30px !important;
+  font-weight: 400 !important;
+
+  line-height: 1.1 !important;
+
+  letter-spacing: -0.025em !important;
+
+  color: #292523 !important;
+}
+
+
+.filters-section .section-header p {
+  margin: 0 !important;
+
+  max-width: 500px !important;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif !important;
+
+  font-size: 12px !important;
+
+  line-height: 1.6 !important;
+
+  color: #8b817d !important;
+}
+
+
+/* Small uppercase label */
+.filters-section .section-eyebrow {
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif !important;
+
+  font-size: 9px !important;
+
+  font-weight: 600 !important;
+
+  letter-spacing: 0.22em !important;
+
+  color: #918783 !important;
+}
+
+
+/* ---------------------------------------------------------
+   ADD FILTER BUTTON
+   --------------------------------------------------------- */
+
+.filters-section .small-add {
+  flex-shrink: 0 !important;
+
+  min-height: 44px !important;
+
+  padding: 0 20px !important;
+
+  display: inline-flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 8px !important;
+
+  border: 1px solid #292523 !important;
+
+  border-radius: 12px !important;
+
+  background: #292523 !important;
+
+  color: #ffffff !important;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif !important;
+
+  font-size: 11px !important;
+
+  font-weight: 600 !important;
+
+  letter-spacing: 0.02em !important;
+
+  cursor: pointer !important;
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    background .2s ease !important;
+}
+
+
+.filters-section .small-add:hover {
+  transform: translateY(-2px) !important;
+
+  background: #3a3431 !important;
+
+  box-shadow:
+    0 8px 20px rgba(41, 37, 35, 0.15) !important;
+}
+
+
+/* ---------------------------------------------------------
+   FILTER GRID
+   --------------------------------------------------------- */
+
+.admin-filter-grid {
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr)) !important;
+
+  gap: 18px !important;
+
+  width: 100% !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+
+/* ---------------------------------------------------------
+   FILTER CARD
+   --------------------------------------------------------- */
+
+.admin-filter-card {
+  position: relative !important;
+
+  display: flex !important;
+
+  flex-direction: column !important;
+
+  min-width: 0 !important;
+
+  overflow: hidden !important;
+
+  background: #ffffff !important;
+
+  border:
+    1px solid rgba(41, 37, 35, 0.08) !important;
+
+  border-radius: 18px !important;
+
+  box-shadow:
+    0 4px 18px rgba(41, 37, 35, 0.045) !important;
+
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease,
+    border-color .25s ease !important;
+}
+
+
+.admin-filter-card:hover {
+  transform: translateY(-4px) !important;
+
+  border-color:
+    rgba(41, 37, 35, 0.14) !important;
+
+  box-shadow:
+    0 14px 35px rgba(41, 37, 35, 0.10) !important;
+}
+
+
+/* ---------------------------------------------------------
+   FILTER IMAGE
+   --------------------------------------------------------- */
+
+.admin-filter-image {
+  position: relative !important;
+
+  width: 100% !important;
+
+  aspect-ratio: 1 / 1.05 !important;
+
+  height: auto !important;
+
+  overflow: hidden !important;
+
+  background: #f2eeeb !important;
+}
+
+
+.admin-filter-image img {
+  width: 100% !important;
+
+  height: 100% !important;
+
+  display: block !important;
+
+  object-fit: cover !important;
+
+  object-position: center !important;
+
+  transition:
+    transform .45s cubic-bezier(.2,.7,.2,1) !important;
+}
+
+
+.admin-filter-card:hover
+.admin-filter-image img {
+  transform: scale(1.035) !important;
+}
+
+
+/* No image */
+.admin-filter-image .admin-no-image {
+  width: 100% !important;
+  height: 100% !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  background: #f2eeeb !important;
+
+  color: #8f8580 !important;
+
+  font-family: Georgia, serif !important;
+
+  font-size: 22px !important;
+
+  letter-spacing: .14em !important;
+}
+
+
+/* ---------------------------------------------------------
+   FILTER INFORMATION
+   --------------------------------------------------------- */
+
+.admin-filter-info {
+  display: flex !important;
+
+  flex-direction: column !important;
+
+  padding: 16px !important;
+
+  min-width: 0 !important;
+}
+
+
+.admin-filter-info h3 {
+  margin: 0 !important;
+
+  color: #292523 !important;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif !important;
+
+  font-size: 14px !important;
+
+  font-weight: 600 !important;
+
+  line-height: 1.3 !important;
+
+  text-transform: capitalize !important;
+
+  overflow: hidden !important;
+
+  white-space: nowrap !important;
+
+  text-overflow: ellipsis !important;
+}
+
+
+.admin-filter-info > span {
+  display: block !important;
+
+  margin-top: 5px !important;
+
+  color: #9b918d !important;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif !important;
+
+  font-size: 10px !important;
+
+  line-height: 1.3 !important;
+
+  letter-spacing: .04em !important;
+}
+
+
+/* ---------------------------------------------------------
+   EDIT / DELETE ACTIONS
+   --------------------------------------------------------- */
+
+.admin-filter-actions {
+  display: grid !important;
+
+  grid-template-columns: 1fr 42px !important;
+
+  gap: 8px !important;
+
+  width: 100% !important;
+
+  margin-top: 14px !important;
+}
+
+
+.admin-filter-actions .edit-product,
+.admin-filter-actions .delete-product {
+  min-height: 38px !important;
+
+  margin: 0 !important;
+
+  border-radius: 10px !important;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif !important;
+
+  font-size: 10px !important;
+
+  transition:
+    transform .2s ease,
+    background .2s ease,
+    border-color .2s ease !important;
+}
+
+
+/* Edit */
+.admin-filter-actions .edit-product {
+  display: flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 7px !important;
+
+  border:
+    1px solid rgba(41, 37, 35, 0.12) !important;
+
+  background: #faf8f6 !important;
+
+  color: #292523 !important;
+}
+
+
+.admin-filter-actions .edit-product:hover {
+  background: #f2e9e7 !important;
+
+  border-color: #d8c2c0 !important;
+
+  transform: translateY(-1px) !important;
+}
+
+
+/* Delete */
+.admin-filter-actions .delete-product {
+  display: flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  padding: 0 !important;
+
+  border:
+    1px solid rgba(41, 37, 35, 0.10) !important;
+
+  background: #ffffff !important;
+
+  color: #8b6f6f !important;
+
+  cursor: pointer !important;
+}
+
+
+.admin-filter-actions .delete-product:hover {
+  background: #f9eeee !important;
+
+  border-color: #e4caca !important;
+
+  color: #9c5555 !important;
+}
+
+
+/* ---------------------------------------------------------
+   FILTER MODAL
+   --------------------------------------------------------- */
+
+.filter-modal {
+  width: min(620px, calc(100vw - 32px)) !important;
+
+  max-width: 620px !important;
+
+  max-height: calc(100vh - 32px) !important;
+
+  overflow-y: auto !important;
+
+  padding: 0 !important;
+
+  background: #fffdfb !important;
+
+  border:
+    1px solid rgba(41, 37, 35, 0.08) !important;
+
+  border-radius: 22px !important;
+
+  box-shadow:
+    0 30px 80px rgba(20, 18, 17, 0.20) !important;
+}
+
+
+/* Modal heading */
+.filter-modal .admin-modal-head {
+  padding: 22px 24px !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+
+  justify-content: space-between !important;
+
+  border-bottom:
+    1px solid rgba(41, 37, 35, 0.08) !important;
+}
+
+
+.filter-modal .admin-modal-head h2 {
+  margin: 7px 0 0 !important;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif !important;
+
+  font-size: 25px !important;
+
+  font-weight: 400 !important;
+
+  line-height: 1.1 !important;
+
+  color: #292523 !important;
+}
+
+
+/* Close button */
+.filter-modal .modal-close {
+  width: 38px !important;
+
+  height: 38px !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  padding: 0 !important;
+
+  border: 1px solid rgba(41, 37, 35, 0.10) !important;
+
+  border-radius: 50% !important;
+
+  background: #faf8f6 !important;
+
+  color: #292523 !important;
+
+  cursor: pointer !important;
+
+  transition:
+    background .2s ease,
+    transform .2s ease !important;
+}
+
+
+.filter-modal .modal-close:hover {
+  background: #f1e7e5 !important;
+
+  transform: rotate(5deg) !important;
+}
+
+
+/* ---------------------------------------------------------
+   FORM
+   --------------------------------------------------------- */
+
+.filter-modal form {
+  padding: 24px !important;
+}
+
+
+.filter-modal .admin-form-grid {
+  display: grid !important;
+
+  grid-template-columns: 1fr !important;
+
+  gap: 20px !important;
+}
+
+
+.filter-modal .form-field {
+  width: 100% !important;
+
+  margin: 0 !important;
+}
+
+
+.filter-modal .form-field label:not(.image-upload-box) {
+  display: block !important;
+
+  margin-bottom: 8px !important;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif !important;
+
+  font-size: 10px !important;
+
+  font-weight: 600 !important;
+
+  letter-spacing: .10em !important;
+
+  text-transform: uppercase !important;
+
+  color: #6f6662 !important;
+}
+
+
+.filter-modal .form-field input:not([type="file"]) {
+  width: 100% !important;
+
+  min-height: 46px !important;
+
+  box-sizing: border-box !important;
+
+  padding: 0 14px !important;
+
+  border:
+    1px solid rgba(41, 37, 35, 0.13) !important;
+
+  border-radius: 11px !important;
+
+  background: #ffffff !important;
+
+  color: #292523 !important;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif !important;
+
+  font-size: 13px !important;
+
+  outline: none !important;
+
+  transition:
+    border-color .2s ease,
+    box-shadow .2s ease !important;
+}
+
+
+.filter-modal .form-field input:not([type="file"]):focus {
+  border-color: #a77d7d !important;
+
+  box-shadow:
+    0 0 0 3px rgba(234, 208, 208, 0.35) !important;
+}
+
+
+/* ---------------------------------------------------------
+   IMAGE UPLOAD
+   --------------------------------------------------------- */
+
+.filter-modal .image-upload-box {
+  width: 100% !important;
+
+  min-height: 150px !important;
+
+  box-sizing: border-box !important;
+
+  padding: 25px !important;
+
+  display: flex !important;
+
+  flex-direction: column !important;
+
+  align-items: center !important;
+
+  justify-content: center !important;
+
+  gap: 8px !important;
+
+  border:
+    1.5px dashed #d6c7c3 !important;
+
+  border-radius: 15px !important;
+
+  background: #faf7f5 !important;
+
+  color: #756b67 !important;
+
+  text-align: center !important;
+
+  cursor: pointer !important;
+
+  transition:
+    background .2s ease,
+    border-color .2s ease,
+    transform .2s ease !important;
+}
+
+
+.filter-modal .image-upload-box:hover {
+  background: #f8efed !important;
+
+  border-color: #b99896 !important;
+
+  transform: translateY(-1px) !important;
+}
+
+
+.filter-modal .image-upload-box span {
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif !important;
+
+  font-size: 12px !important;
+
+  font-weight: 600 !important;
+
+  color: #4e4744 !important;
+}
+
+
+.filter-modal .image-upload-box small {
+  max-width: 280px !important;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif !important;
+
+  font-size: 10px !important;
+
+  line-height: 1.5 !important;
+
+  color: #9b918d !important;
+}
+
+
+/* ---------------------------------------------------------
+   IMAGE PREVIEW
+   --------------------------------------------------------- */
+
+.filter-modal .filter-image-preview {
+  position: relative !important;
+
+  width: 150px !important;
+
+  height: 150px !important;
+
+  max-width: none !important;
+
+  margin: 14px auto 0 !important;
+
+  overflow: hidden !important;
+
+  border:
+    1px solid rgba(41, 37, 35, 0.10) !important;
+
+  border-radius: 50% !important;
+
+  background: #f3efec !important;
+
+  box-shadow:
+    0 8px 24px rgba(41, 37, 35, 0.08) !important;
+}
+
+
+.filter-modal .filter-image-preview img {
+  width: 100% !important;
+
+  height: 100% !important;
+
+  display: block !important;
+
+  object-fit: cover !important;
+}
+
+
+.filter-modal .filter-image-preview button {
+  top: 8px !important;
+
+  right: 8px !important;
+
+  width: 30px !important;
+
+  height: 30px !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  border: 0 !important;
+
+  border-radius: 50% !important;
+
+  background: rgba(255,255,255,.94) !important;
+
+  color: #292523 !important;
+
+  box-shadow:
+    0 4px 14px rgba(0,0,0,.14) !important;
+}
+
+
+/* ---------------------------------------------------------
+   MODAL BUTTONS
+   --------------------------------------------------------- */
+
+.filter-modal .admin-form-actions {
+  display: flex !important;
+
+  justify-content: flex-end !important;
+
+  gap: 10px !important;
+
+  margin-top: 24px !important;
+
+  padding-top: 18px !important;
+
+  border-top:
+    1px solid rgba(41, 37, 35, 0.08) !important;
+}
+
+
+.filter-modal .cancel-button,
+.filter-modal .admin-form-actions .add-product-button {
+  min-height: 42px !important;
+
+  padding: 0 18px !important;
+
+  border-radius: 10px !important;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif !important;
+
+  font-size: 11px !important;
+
+  font-weight: 600 !important;
+
+  cursor: pointer !important;
+}
+
+
+.filter-modal .cancel-button {
+  border:
+    1px solid rgba(41, 37, 35, 0.12) !important;
+
+  background: #ffffff !important;
+
+  color: #5f5753 !important;
+}
+
+
+.filter-modal .admin-form-actions .add-product-button {
+  border: 1px solid #292523 !important;
+
+  background: #292523 !important;
+
+  color: #ffffff !important;
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1000px) {
+
+  .admin-filter-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr)) !important;
+
+    gap: 15px !important;
+  }
+
+  .filters-section {
+    padding: 24px !important;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .filters-section {
+    margin-top: 18px !important;
+
+    padding: 20px 16px !important;
+
+    border-radius: 18px !important;
+  }
+
+
+  .filters-section .section-header {
+    align-items: flex-start !important;
+
+    margin-bottom: 20px !important;
+
+    gap: 16px !important;
+  }
+
+
+  .filters-section .section-header h2 {
+    font-size: 23px !important;
+
+    margin-top: 6px !important;
+  }
+
+
+  .filters-section .section-header p {
+    font-size: 10px !important;
+
+    line-height: 1.5 !important;
+  }
+
+
+  .filters-section .small-add {
+    min-height: 40px !important;
+
+    padding: 0 13px !important;
+
+    font-size: 10px !important;
+
+    white-space: nowrap !important;
+  }
+
+
+  .admin-filter-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+
+    gap: 12px !important;
+  }
+
+
+  .admin-filter-card {
+    border-radius: 15px !important;
+  }
+
+
+  .admin-filter-image {
+    aspect-ratio: 1 / 1.08 !important;
+  }
+
+
+  .admin-filter-info {
+    padding: 12px !important;
+  }
+
+
+  .admin-filter-info h3 {
+    font-size: 12px !important;
+  }
+
+
+  .admin-filter-info > span {
+    font-size: 9px !important;
+
+    margin-top: 4px !important;
+  }
+
+
+  .admin-filter-actions {
+    grid-template-columns: 1fr 36px !important;
+
+    gap: 6px !important;
+
+    margin-top: 10px !important;
+  }
+
+
+  .admin-filter-actions .edit-product,
+  .admin-filter-actions .delete-product {
+    min-height: 34px !important;
+
+    font-size: 9px !important;
+  }
+
+
+  /* Modal */
+  .filter-modal {
+    width: calc(100vw - 24px) !important;
+
+    max-height: calc(100vh - 24px) !important;
+
+    border-radius: 18px !important;
+  }
+
+
+  .filter-modal .admin-modal-head {
+    padding: 18px !important;
+  }
+
+
+  .filter-modal .admin-modal-head h2 {
+    font-size: 21px !important;
+  }
+
+
+  .filter-modal form {
+    padding: 18px !important;
+  }
+
+
+  .filter-modal .image-upload-box {
+    min-height: 125px !important;
+
+    padding: 18px !important;
+  }
+
+
+  .filter-modal .filter-image-preview {
+    width: 125px !important;
+
+    height: 125px !important;
+  }
+
+
+  .filter-modal .admin-form-actions {
+    display: grid !important;
+
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+
+  .filter-modal .cancel-button,
+  .filter-modal .admin-form-actions .add-product-button {
+    width: 100% !important;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 390px) {
+
+  .filters-section {
+    padding: 17px 12px !important;
+  }
+
+
+  .filters-section .section-header {
+    gap: 10px !important;
+  }
+
+
+  .filters-section .section-header h2 {
+    font-size: 20px !important;
+  }
+
+
+  .filters-section .section-header p {
+    display: none !important;
+  }
+
+
+  .filters-section .small-add {
+    min-height: 37px !important;
+
+    padding: 0 10px !important;
+
+    font-size: 9px !important;
+  }
+
+
+  .admin-filter-grid {
+    gap: 9px !important;
+  }
+
+
+  .admin-filter-card {
+    border-radius: 13px !important;
+  }
+
+
+  .admin-filter-info {
+    padding: 10px !important;
+  }
+
+
+  .admin-filter-info h3 {
+    font-size: 11px !important;
+  }
+
+
+  .admin-filter-info > span {
+    font-size: 8px !important;
+  }
+
+
+  .admin-filter-actions {
+    grid-template-columns: 1fr 32px !important;
+
+    gap: 5px !important;
+  }
+
+
+  .admin-filter-actions .edit-product,
+  .admin-filter-actions .delete-product {
+    min-height: 31px !important;
+  }
+
+}/* =========================================================
+   FILTER CARD — EDIT + DELETE BUTTONS
+   ========================================================= */
+
+.admin-filter-actions {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin-top: 14px !important;
+}
+
+.admin-filter-actions .edit-product,
+.admin-filter-actions .delete-product {
+  min-height: 38px !important;
+  width: 100% !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+
+  padding: 0 10px !important;
+
+  border-radius: 10px !important;
+
+  font-size: 10px !important;
+  font-weight: 600 !important;
+
+  cursor: pointer !important;
+}
+
+
+/* EDIT */
+.admin-filter-actions .edit-product {
+  border: 1px solid rgba(41, 37, 35, 0.12) !important;
+  background: #faf8f6 !important;
+  color: #292523 !important;
+}
+
+.admin-filter-actions .edit-product:hover {
+  background: #f1e7e5 !important;
+  border-color: #cdb7b3 !important;
+}
+
+
+/* DELETE */
+.admin-filter-actions .delete-product {
+  border: 1px solid #ead4d1 !important;
+  background: #fff8f7 !important;
+  color: #a45d58 !important;
+}
+
+.admin-filter-actions .delete-product:hover {
+  background: #f8e7e5 !important;
+  border-color: #d8aaa5 !important;
+  color: #8e403b !important;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .admin-filter-actions {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    margin-top: 10px !important;
+  }
+
+  .admin-filter-actions .edit-product,
+  .admin-filter-actions .delete-product {
+    min-height: 34px !important;
+    padding: 0 7px !important;
+    font-size: 9px !important;
+  }
+
+}
+
+
+@media (max-width: 390px) {
+
+  .admin-filter-actions {
+    gap: 5px !important;
+  }
+
+  .admin-filter-actions .edit-product,
+  .admin-filter-actions .delete-product {
+    min-height: 32px !important;
+    font-size: 8px !important;
+  }
+
+}
+/* =========================================================
+   IRA THE LABEL — PREMIUM ADMIN PANEL
+   Standalone stylesheet for AdminPanel.jsx
+   ========================================================= */
+
+.premium-admin,
+.premium-admin * { box-sizing: border-box; }
+
+.premium-admin {
+  --admin-bg: #f6f3f0;
+  --admin-surface: #fffdfb;
+  --admin-surface-2: #f9f6f3;
+  --admin-ink: #292522;
+  --admin-muted: #817973;
+  --admin-soft: #aaa19a;
+  --admin-line: #e8e1dc;
+  --admin-accent: #8f6f63;
+  --admin-danger: #a65d5d;
+  --admin-success: #58785f;
+  min-height: 100vh;
+  color: var(--admin-ink);
+  background: var(--admin-bg);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.premium-admin button,
+.premium-admin input,
+.premium-admin select,
+.premium-admin textarea { font: inherit; }
+
+.premium-admin button { cursor: pointer; }
+.premium-admin button:disabled { cursor: not-allowed; opacity: .65; }
+
+/* SIDEBAR */
+.admin-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 18px 20px;
+  background: #fcfaf8;
+  border-right: 1px solid var(--admin-line);
+  z-index: 100;
+}
+
+.admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 2px 8px 27px;
+}
+
+.admin-brand-mark {
+  width: 45px;
+  height: 45px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: #fff;
+  background: var(--admin-ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .05em;
+}
+
+.admin-brand span,
+.admin-brand strong { display: block; }
+.admin-brand span {
+  margin-bottom: 4px;
+  color: var(--admin-soft);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .18em;
+}
+.admin-brand strong {
+  color: var(--admin-ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 22px 0;
+  border-top: 1px solid var(--admin-line);
+}
+
+.admin-nav-link {
+  position: relative;
+  min-height: 47px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 13px;
+  color: var(--admin-muted);
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 600;
+  transition: .2s ease;
+}
+.admin-nav-link:hover { color: var(--admin-ink); background: #f3eeea; }
+.admin-nav-link.active { color: var(--admin-ink); background: #eee7e2; }
+.admin-nav-link.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 4px 4px 0;
+  background: var(--admin-ink);
+}
+.admin-nav-link b {
+  min-width: 20px;
+  height: 20px;
+  margin-left: auto;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--admin-danger);
+  font-size: 9px;
+}
+
+.admin-sidebar-footer {
+  margin-top: auto;
+  display: grid;
+  gap: 8px;
+  padding-top: 18px;
+  border-top: 1px solid var(--admin-line);
+}
+
+.admin-sidebar-action,
+.admin-primary-button,
+.admin-secondary-button,
+.admin-icon-button,
+.admin-small-button,
+.admin-edit-button,
+.admin-delete-button,
+.admin-accept-button,
+.admin-reject-button {
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform .2s ease, background .2s ease, border-color .2s ease, color .2s ease;
+}
+
+.admin-sidebar-action {
+  min-height: 43px;
+  width: 100%;
+  border: 1px solid var(--admin-line);
+  border-radius: 9px;
+  color: #6f6761;
+  background: transparent;
+  font-size: 10px;
+  font-weight: 700;
+}
+.admin-sidebar-action.primary { border-color: var(--admin-ink); color: #fff; background: var(--admin-ink); }
+.admin-sidebar-action:hover { transform: translateY(-1px); }
+.admin-sidebar-action:not(.primary):hover { color: var(--admin-ink); background: #f5f0ed; }
+.admin-sidebar-action.primary:hover { background: #403a36; }
+
+/* MAIN */
+.admin-shell { min-height: 100vh; margin-left: 250px; }
+.admin-topbar {
+  position: sticky;
+  top: 0;
+  min-height: 78px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 42px;
+  background: rgba(255,253,251,.92);
+  border-bottom: 1px solid var(--admin-line);
+  backdrop-filter: blur(18px);
+  z-index: 90;
+}
+.admin-topbar-title span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--admin-soft);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .2em;
+}
+.admin-topbar-title h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 21px;
+  font-weight: 400;
+}
+.admin-topbar-actions { display: flex; align-items: center; gap: 9px; }
+.admin-icon-button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--admin-line);
+  border-radius: 9px;
+  color: #6d6660;
+  background: #fff;
+}
+.admin-icon-button:hover { color: var(--admin-ink); background: #f5f0ed; }
+.admin-primary-button {
+  min-height: 40px;
+  padding: 0 15px;
+  border-radius: 9px;
+  color: #fff;
+  background: var(--admin-ink);
+  font-size: 10px;
+  font-weight: 750;
+}
+.admin-primary-button:hover { transform: translateY(-1px); background: #403a36; }
+.admin-secondary-button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--admin-line);
+  border-radius: 9px;
+  color: #625b55;
+  background: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+.admin-secondary-button:hover { color: var(--admin-ink); background: #f5f0ed; }
+
+.admin-main {
+  width: min(100% - 76px, 1380px);
+  margin: 0 auto;
+  padding: 40px 0 80px;
+}
+
+/* HERO */
+.admin-hero {
+  min-height: 190px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 25px;
+  padding: 34px 36px;
+  border: 1px solid var(--admin-line);
+  border-radius: 18px;
+  background: linear-gradient(135deg, #fffdfb 0%, #f1eae5 100%);
+}
+.admin-eyebrow,
+.admin-section-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--admin-soft);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .18em;
+}
+.admin-hero h2 {
+  margin: 12px 0 8px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(32px, 4vw, 50px);
+  line-height: .98;
+  font-weight: 400;
+  letter-spacing: -.035em;
+}
+.admin-hero h2 em { color: var(--admin-accent); font-style: italic; }
+.admin-hero p { max-width: 590px; margin: 0; color: var(--admin-muted); font-size: 12px; line-height: 1.7; }
+
+/* ALERT */
+.admin-alert {
+  min-height: 47px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 0 14px;
+  border: 1px solid #d9e4db;
+  border-radius: 10px;
+  color: #48624e;
+  background: #f4f8f5;
+  font-size: 11px;
+}
+.admin-alert.error { border-color: #ead5d5; color: #8b5050; background: #fcf5f5; }
+.admin-alert > button { margin-left: auto; border: 0; color: inherit; background: transparent; display: grid; place-items: center; }
+
+/* STATS */
+.admin-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 25px;
+}
+.admin-stat-card {
+  min-height: 132px;
+  display: flex;
+  gap: 13px;
+  padding: 19px;
+  border: 1px solid var(--admin-line);
+  border-radius: 14px;
+  background: var(--admin-surface);
+  box-shadow: 0 8px 25px rgba(45,37,32,.035);
+}
+.admin-stat-card.attention { border-color: #eadbce; background: #fffaf5; }
+.admin-stat-card.revenue { background: #f7f1ed; }
+.admin-stat-icon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: #645b55;
+  background: #f0eae6;
+}
+.admin-stat-card > div:last-child { min-width: 0; }
+.admin-stat-card span,
+.admin-stat-card small { display: block; }
+.admin-stat-card span { color: var(--admin-muted); font-size: 9px; font-weight: 600; }
+.admin-stat-card strong { display: block; margin: 8px 0 6px; font-family: Georgia, serif; font-size: 25px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.admin-stat-card small { color: var(--admin-soft); font-size: 8px; line-height: 1.4; }
+
+/* SECTIONS */
+.admin-panel-section {
+  overflow: hidden;
+  margin-top: 20px;
+  border: 1px solid var(--admin-line);
+  border-radius: 16px;
+  background: var(--admin-surface);
+  box-shadow: 0 10px 32px rgba(45,37,32,.035);
+  scroll-margin-top: 100px;
+}
+.admin-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 25px 27px;
+  border-bottom: 1px solid var(--admin-line);
+}
+.admin-section-header h2 { margin: 8px 0 5px; font-family: Georgia, serif; font-size: 25px; font-weight: 400; letter-spacing: -.02em; }
+.admin-section-header p { margin: 0; color: var(--admin-muted); font-size: 10px; line-height: 1.5; }
+.admin-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid #eadfd7;
+  border-radius: 999px;
+  color: #79685e;
+  background: #faf5f1;
+  font-size: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* STATES */
+.admin-state {
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 35px;
+  color: var(--admin-muted);
+  font-size: 10px;
+}
+.admin-state.empty { flex-direction: column; text-align: center; }
+.admin-state.empty svg { color: #b2a8a1; }
+.admin-state h3 { margin: 2px 0 0; color: var(--admin-ink); font-family: Georgia, serif; font-size: 20px; font-weight: 400; }
+.admin-state p { max-width: 330px; margin: 0 0 8px; color: var(--admin-muted); font-size: 10px; line-height: 1.6; }
+
+/* ORDERS */
+.admin-order-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; padding: 20px; }
+.admin-order-card { padding: 18px; border: 1px solid var(--admin-line); border-radius: 13px; background: #fff; }
+.admin-order-head,
+.admin-order-footer { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+.admin-order-id { display: flex; align-items: center; gap: 10px; }
+.admin-order-icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; background: #f1ece8; color: #665e58; }
+.admin-order-id span,
+.admin-order-customer span,
+.admin-order-footer span { display: block; color: var(--admin-soft); font-size: 7px; font-weight: 800; letter-spacing: .12em; }
+.admin-order-id strong { display: block; margin-top: 3px; font-family: Georgia, serif; font-size: 14px; font-weight: 400; }
+.admin-status { display: inline-flex; align-items: center; justify-content: center; min-height: 25px; padding: 0 9px; border-radius: 999px; font-size: 8px; font-weight: 750; }
+.admin-status.pending { color: #8a6a43; background: #f8eedf; }
+.admin-status.accepted { color: #4f7257; background: #eaf3ec; }
+.admin-status.rejected,
+.admin-status.cancelled { color: #8d5555; background: #f7eaea; }
+.admin-order-customer { display: flex; align-items: center; gap: 9px; margin-top: 18px; color: #77706a; }
+.admin-order-customer strong { display: block; margin-top: 3px; color: var(--admin-ink); font-size: 11px; font-weight: 650; }
+.admin-order-meta { display: flex; flex-wrap: wrap; gap: 12px; margin: 15px 0; padding: 11px 0; border-top: 1px solid #eee9e5; border-bottom: 1px solid #eee9e5; color: #7f7771; font-size: 8px; }
+.admin-order-meta span { display: inline-flex; align-items: center; gap: 5px; }
+.admin-order-footer > div:first-child strong { display: block; margin-top: 4px; font-family: Georgia, serif; font-size: 18px; font-weight: 400; }
+.admin-order-actions { display: flex; gap: 7px; }
+.admin-small-button { min-height: 35px; padding: 0 10px; border: 1px solid var(--admin-line); border-radius: 8px; color: #5d5651; background: #fff; font-size: 8px; font-weight: 700; }
+.admin-small-button:hover { color: var(--admin-ink); background: #f5f0ed; }
+.admin-delete-button { width: 35px; height: 35px; border: 1px solid #eadada; border-radius: 8px; color: var(--admin-danger); background: #fff; }
+.admin-delete-button:hover { background: #fcf4f4; }
+
+/* PRODUCTS */
+.admin-product-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; padding: 20px; }
+.admin-product-card { overflow: hidden; border: 1px solid var(--admin-line); border-radius: 13px; background: #fff; transition: transform .25s ease, box-shadow .25s ease; }
+.admin-product-card:hover { transform: translateY(-3px); box-shadow: 0 13px 30px rgba(45,37,32,.07); }
+.admin-product-media { position: relative; aspect-ratio: .82; overflow: hidden; background: #eee9e5; }
+.admin-product-media img,
+.admin-filter-media img,
+.admin-modal-product-image img,
+.admin-preview img,
+.admin-filter-preview img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.admin-product-media > span { position: absolute; top: 10px; left: 10px; padding: 5px 8px; border-radius: 999px; color: #514a45; background: rgba(255,253,251,.9); font-size: 7px; font-weight: 800; letter-spacing: .08em; }
+.admin-no-image { width: 100%; height: 100%; display: grid; place-items: center; color: #a69c95; background: #eee9e5; font-family: Georgia, serif; font-size: 17px; letter-spacing: .16em; }
+.admin-product-body { padding: 15px; }
+.admin-product-body h3 { margin: 0 0 9px; font-family: Georgia, serif; font-size: 16px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.admin-product-price { display: flex; align-items: center; gap: 8px; }
+.admin-product-price strong { font-family: Georgia, serif; font-size: 15px; font-weight: 400; }
+.admin-product-price small { color: #8e5f5f; font-size: 7px; font-weight: 800; }
+.admin-stock-row { display: flex; justify-content: space-between; margin: 14px 0; padding-top: 11px; border-top: 1px solid #eee9e5; color: var(--admin-soft); font-size: 8px; }
+.admin-stock-row strong { color: var(--admin-ink); font-weight: 700; }
+.admin-product-actions { display: flex; align-items: center; gap: 7px; }
+.admin-edit-button { min-height: 34px; flex: 1; padding: 0 10px; border: 1px solid var(--admin-line); border-radius: 8px; color: #5f5852; background: #fff; font-size: 8px; font-weight: 700; }
+.admin-edit-button:hover { background: #f5f0ed; }
+
+/* FILTERS */
+.admin-filter-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; padding: 20px; }
+.admin-filter-card { overflow: hidden; border: 1px solid var(--admin-line); border-radius: 13px; background: #fff; }
+.admin-filter-media { aspect-ratio: 1.15; overflow: hidden; background: #eee9e5; }
+.admin-filter-body { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px; }
+.admin-filter-body > div:first-child { min-width: 0; }
+.admin-filter-body span { color: var(--admin-soft); font-size: 6px; font-weight: 800; letter-spacing: .12em; }
+.admin-filter-body h3 { margin: 4px 0 0; font-family: Georgia, serif; font-size: 15px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.admin-filter-body .admin-product-actions { flex: 0 0 auto; }
+
+/* MODALS */
+.admin-modal-overlay { position: fixed; inset: 0; z-index: 500; display: grid; place-items: center; padding: 24px; background: rgba(31,27,24,.58); backdrop-filter: blur(7px); }
+.admin-modal { width: min(850px, 100%); max-height: calc(100vh - 48px); overflow: auto; border: 1px solid #e5ddd7; border-radius: 17px; background: #fffdfb; box-shadow: 0 25px 70px rgba(25,20,17,.2); }
+.premium-order-modal { width: min(780px, 100%); }
+.admin-modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 25px 27px; border-bottom: 1px solid var(--admin-line); }
+.admin-modal-header h2 { margin: 7px 0 0; font-family: Georgia, serif; font-size: 25px; font-weight: 400; }
+.admin-modal-header p { margin: 6px 0 0; color: var(--admin-muted); font-size: 9px; }
+.admin-modal-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+.admin-modal-close { width: 35px; height: 35px; display: grid; place-items: center; border: 1px solid var(--admin-line); border-radius: 8px; color: #716a64; background: #fff; }
+.admin-modal-close:hover { color: var(--admin-ink); background: #f5f0ed; }
+
+.admin-summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 20px 27px; }
+.admin-summary-grid > div { display: flex; align-items: center; gap: 9px; padding: 13px; border: 1px solid var(--admin-line); border-radius: 10px; color: #77706a; background: #fff; }
+.admin-summary-grid span { color: var(--admin-soft); font-size: 7px; }
+.admin-summary-grid strong { display: block; margin-top: 3px; color: var(--admin-ink); font-size: 10px; font-weight: 650; }
+.admin-info-block { margin: 0 27px 16px; padding: 16px; border: 1px solid var(--admin-line); border-radius: 11px; background: #fff; }
+.admin-info-title { display: flex; align-items: center; gap: 7px; }
+.admin-info-title h3 { margin: 0; font-family: Georgia, serif; font-size: 15px; font-weight: 400; }
+.admin-info-title span { margin-left: auto; color: var(--admin-soft); font-size: 8px; }
+.admin-info-block > p { margin: 9px 0 0; color: var(--admin-muted); font-size: 9px; line-height: 1.65; }
+.admin-modal-products { margin-top: 13px; border-top: 1px solid #eee9e5; }
+.admin-modal-product { display: grid; grid-template-columns: 43px 1fr auto; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid #eee9e5; }
+.admin-modal-product-image { width: 43px; height: 52px; overflow: hidden; display: grid; place-items: center; border-radius: 7px; color: #aaa09a; background: #eee9e5; }
+.admin-modal-product strong { display: block; font-size: 9px; font-weight: 650; }
+.admin-modal-product span { display: block; margin-top: 3px; color: var(--admin-soft); font-size: 8px; }
+.admin-modal-product > strong:last-child { font-family: Georgia, serif; font-size: 12px; font-weight: 400; }
+.admin-modal-footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px 27px 25px; }
+.admin-modal-footer > div:first-child span { display: block; color: var(--admin-soft); font-size: 8px; }
+.admin-modal-footer > div:first-child strong { display: block; margin-top: 4px; font-family: Georgia, serif; font-size: 23px; font-weight: 400; }
+.admin-status-actions { display: flex; gap: 8px; }
+.admin-accept-button,
+.admin-reject-button { min-height: 40px; padding: 0 14px; border-radius: 8px; font-size: 9px; font-weight: 750; }
+.admin-accept-button { color: #fff; background: #526f58; }
+.admin-reject-button { border: 1px solid #ead6d6; color: #925555; background: #fff; }
+
+/* FORMS */
+.admin-modal form { padding: 25px 27px 27px; }
+.admin-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px; }
+.admin-field { min-width: 0; }
+.admin-field.full { grid-column: 1 / -1; }
+.admin-field > label { display: block; margin-bottom: 7px; color: #5c554f; font-size: 9px; font-weight: 700; }
+.admin-field input,
+.admin-field select,
+.admin-field textarea { width: 100%; border: 1px solid #ded6d0; border-radius: 8px; outline: 0; color: var(--admin-ink); background: #fff; font-size: 10px; transition: border-color .2s ease, box-shadow .2s ease; }
+.admin-field input,
+.admin-field select { height: 43px; padding: 0 12px; }
+.admin-field textarea { min-height: 120px; padding: 11px 12px; resize: vertical; line-height: 1.55; }
+.admin-field input:focus,
+.admin-field select:focus,
+.admin-field textarea:focus { border-color: #9b887d; box-shadow: 0 0 0 3px rgba(155,136,125,.1); }
+.admin-field input::placeholder,
+.admin-field textarea::placeholder { color: #b5ada7; }
+
+.admin-payment-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; margin-bottom: 10px; }
+.admin-payment-heading label { margin-bottom: 3px; }
+.admin-payment-heading p { margin: 0; color: var(--admin-muted); font-size: 8px; }
+.admin-payment-heading > span { color: var(--admin-soft); font-size: 8px; }
+.admin-payment-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+.admin-payment-option { min-width: 0; min-height: 72px; display: flex; align-items: center; gap: 9px; padding: 10px; border: 1px solid var(--admin-line); border-radius: 9px; text-align: left; background: #fff; }
+.admin-payment-option:hover { background: #faf7f5; }
+.admin-payment-option.selected { border-color: #8e7b70; background: #f8f3ef; }
+.admin-payment-icon { width: 31px; height: 31px; flex: 0 0 31px; display: grid; place-items: center; border-radius: 8px; color: #70665f; background: #eee8e4; }
+.admin-payment-option > span:nth-child(2) { min-width: 0; }
+.admin-payment-option strong,
+.admin-payment-option small { display: block; }
+.admin-payment-option strong { color: var(--admin-ink); font-size: 8px; }
+.admin-payment-option small { margin-top: 3px; color: var(--admin-muted); font-size: 7px; line-height: 1.3; }
+.admin-payment-option > svg { margin-left: auto; flex: 0 0 auto; color: #5f7b64; }
+.admin-form-hint { margin: 8px 0 0; color: var(--admin-soft); font-size: 7px; }
+.admin-upload-box { min-height: 130px; display: flex !important; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border: 1px dashed #cfc5be; border-radius: 10px; color: #877d76; background: #faf7f4; cursor: pointer; text-align: center; }
+.admin-upload-box:hover { border-color: #9b887d; background: #f7f1ed; }
+.admin-upload-box strong { color: #554e48; font-size: 10px; }
+.admin-upload-box span { color: var(--admin-muted); font-size: 8px; }
+.admin-preview-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 10px; }
+.admin-preview { position: relative; aspect-ratio: .8; overflow: hidden; border-radius: 7px; background: #eee9e5; }
+.admin-preview button,
+.admin-filter-preview button { position: absolute; top: 5px; right: 5px; width: 25px; height: 25px; display: grid; place-items: center; border: 0; border-radius: 50%; color: #fff; background: rgba(35,31,28,.75); }
+.admin-form-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; padding-top: 19px; border-top: 1px solid var(--admin-line); }
+.admin-filter-preview { position: relative; width: 130px; height: 130px; margin-top: 10px; overflow: hidden; border-radius: 10px; background: #eee9e5; }
+
+.loading-spinner { animation: admin-spin 1s linear infinite; }
+@keyframes admin-spin { to { transform: rotate(360deg); } }
+
+/* RESPONSIVE */
+@media (max-width: 1180px) {
+  .admin-stat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .admin-product-grid,
+  .admin-filter-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  .admin-sidebar { width: 215px; }
+  .admin-shell { margin-left: 215px; }
+  .admin-main { width: min(100% - 40px, 1380px); }
+  .admin-topbar { padding: 0 22px; }
+  .admin-order-grid { grid-template-columns: 1fr; }
+  .admin-product-grid,
+  .admin-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 700px) {
+  .admin-sidebar {
+    position: sticky;
+    inset: 0 0 auto 0;
+    width: 100%;
+    padding: 11px 10px 9px;
+    border-right: 0;
+    border-bottom: 1px solid var(--admin-line);
+  }
+  .admin-brand { padding: 0 4px 10px; }
+  .admin-brand-mark { width: 39px; height: 39px; flex-basis: 39px; border-radius: 10px; font-size: 14px; }
+  .admin-brand strong { font-size: 13px; }
+  .admin-brand span { font-size: 6px; }
+  .admin-nav { flex-direction: row; overflow-x: auto; padding: 0; border-top: 0; scrollbar-width: none; }
+  .admin-nav::-webkit-scrollbar { display: none; }
+  .admin-nav-link { min-height: 36px; flex: 0 0 auto; padding: 0 10px; border-radius: 8px; font-size: 8px; }
+  .admin-nav-link.active::before { display: none; }
+  .admin-sidebar-footer { display: none; }
+  .admin-shell { margin-left: 0; }
+  .admin-topbar { min-height: 64px; padding: 0 12px; }
+  .admin-topbar-title h1 { font-size: 18px; }
+  .admin-topbar-actions .admin-primary-button { min-width: 40px; padding: 0 10px; font-size: 0; }
+  .admin-topbar-actions .admin-primary-button svg { width: 17px; height: 17px; }
+  .admin-main { width: calc(100% - 20px); padding: 20px 0 50px; }
+  .admin-hero { min-height: 0; align-items: flex-start; flex-direction: column; padding: 24px 20px; border-radius: 14px; }
+  .admin-hero h2 { font-size: 34px; }
+  .admin-hero p { font-size: 10px; }
+  .admin-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .admin-stat-card { min-height: 108px; padding: 13px; gap: 9px; }
+  .admin-stat-icon { width: 31px; height: 31px; flex-basis: 31px; }
+  .admin-stat-card strong { font-size: 20px; }
+  .admin-section-header { align-items: flex-start; flex-direction: column; padding: 19px 16px; }
+  .admin-section-header h2 { font-size: 21px; }
+  .admin-section-header .admin-primary-button { width: 100%; }
+  .admin-order-grid,
+  .admin-product-grid,
+  .admin-filter-grid { grid-template-columns: 1fr; padding: 12px; }
+  .admin-order-card { padding: 14px; }
+  .admin-order-footer { align-items: flex-start; flex-direction: column; }
+  .admin-order-actions { width: 100%; }
+  .admin-small-button { flex: 1; }
+  .admin-modal-overlay { padding: 10px; align-items: end; }
+  .admin-modal { max-height: calc(100vh - 20px); border-radius: 15px; }
+  .admin-modal-header { padding: 19px 16px; }
+  .admin-modal-header h2 { font-size: 21px; }
+  .admin-summary-grid { grid-template-columns: 1fr; padding: 13px 16px; }
+  .admin-info-block { margin-left: 16px; margin-right: 16px; }
+  .admin-modal-footer { align-items: stretch; flex-direction: column; padding: 16px; }
+  .admin-status-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .admin-form-grid { grid-template-columns: 1fr; }
+  .admin-field.full { grid-column: auto; }
+  .admin-modal form { padding: 19px 16px 16px; }
+  .admin-payment-options { grid-template-columns: 1fr; }
+  .admin-preview-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (max-width: 390px) {
+  .admin-main { width: calc(100% - 12px); }
+  .admin-stat-card { min-height: 100px; padding: 10px; }
+  .admin-stat-card span { font-size: 8px; }
+  .admin-stat-card strong { font-size: 18px; }
+  .admin-stat-card small { font-size: 7px; }
+  .admin-hero h2 { font-size: 30px; }
+  .admin-order-id strong { font-size: 12px; }
+  .admin-order-footer > div:first-child strong { font-size: 16px; }
+  .admin-status-actions { grid-template-columns: 1fr; }
+}

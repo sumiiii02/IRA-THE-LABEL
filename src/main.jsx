@@ -686,13 +686,19 @@ function App() {
           {/* LOGO */}
 
           <div
-  className="wordmark"
-  onClick={() => nav("home")}
->
-  <div>IRA</div>
-
-  <span>THE LABEL</span>
-</div>
+            className="wordmark"
+            onClick={() =>
+              nav("home")
+            }
+            style={{
+              cursor: "pointer",
+            }}
+          >
+            IRA{" "}
+            <span>
+              THE LABEL
+            </span>
+          </div>
 
           {/* ================= NAVIGATION ================= */}
 
@@ -1132,7 +1138,7 @@ function Home({
 
       ) : homepageFilters.length > 0 ? (
 
-        <section className="section">
+        <section className="section section-categories">
 
           <div className="section-head">
 
@@ -1160,40 +1166,40 @@ function Home({
             </button>
 
           </div>
+<div className="dynamic-category-grid">
 
-          <div className="category-grid dynamic-category-grid">
+  {homepageFilters.map((filter) => (
 
-            {homepageFilters.map((filter) => (
+    <button
+      type="button"
+      className="dynamic-category-card"
+      key={filter._id || filter.id || filter.name}
+      onClick={() => {
+        setCategory(filter.name);
+        nav("shop");
+      }}
+    >
 
-              <button
-                className="category-card"
-                key={filter._id || filter.id || filter.name}
-                onClick={() => {
-                  setCategory(filter.name);
-                  nav("shop");
-                }}
-              >
+      <div className="dynamic-filter-circle">
 
-                <ProductVisual
-                  image={getFilterImage(filter.image)}
-                  name={filter.name}
-                />
+        <img
+          src={getFilterImage(filter.image)}
+          alt={filter.name}
+          loading="lazy"
+        />
 
-                <div>
+      </div>
 
-                  <span>
-                    {filter.name}
-                  </span>
+      <span className="dynamic-filter-name">
+        {filter.name}
+      </span>
 
-                  <ArrowRight size={15} />
+    </button>
 
-                </div>
+  ))}
 
-              </button>
+</div>
 
-            ))}
-
-          </div>
 
         </section>
 
@@ -1290,30 +1296,72 @@ function Shop({
 
       <div className="shop-tools">
 
-        <div className="chips">
+<div className="chips">
 
-          {[
-            "All",
-            ...homepageFilters
-              .map((filter) => filter?.name)
-              .filter(Boolean),
-          ].map((item) => (
-            <button
-              className={
-                category === item
-                  ? "active"
-                  : ""
-              }
-              onClick={() =>
-                setCategory(item)
-              }
-              key={item}
-            >
-              {item}
-            </button>
-          ))}
+  <button
+    type="button"
+    className={category === "All" ? "active" : ""}
+    onClick={() => setCategory("All")}
+  >
+    <span className="dynamic-filter-circle filter-all-circle">
+      ALL
+    </span>
 
-        </div>
+    <span className="dynamic-filter-name">
+      All
+    </span>
+  </button>
+
+
+  {homepageFilters.map((filter) => (
+
+    <button
+      type="button"
+      className={
+        category === filter.name
+          ? "active"
+          : ""
+      }
+      onClick={() =>
+        setCategory(filter.name)
+      }
+      key={
+        filter._id ||
+        filter.id ||
+        filter.name
+      }
+    >
+
+      <span className="dynamic-filter-circle">
+
+        {filter.image ? (
+
+          <img
+            src={getFilterImage(filter.image)}
+            alt={filter.name}
+            loading="lazy"
+          />
+
+        ) : (
+
+          <span className="filter-image-fallback">
+            IRA
+          </span>
+
+        )}
+
+      </span>
+
+      <span className="dynamic-filter-name">
+        {filter.name}
+      </span>
+
+    </button>
+
+  ))}
+
+</div>
+
 
         <button className="filter">
 
