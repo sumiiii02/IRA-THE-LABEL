@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   Plus,
@@ -41,6 +41,18 @@ const ORDERS_API_URL =
 const FILTERS_API_URL =
   "https://ira-the-label.onrender.com/api/filters";
 const PAYMENT_METHODS = ["COD", "UPI", "CARD"];
+
+const LEGACY_CATEGORIES = [
+  "Kurtis",
+  "Suits",
+  "Sets",
+  "Co-ords",
+  "Dresses",
+];
+
+const normalizeCategoryName = (value) =>
+  String(value || "").trim();
+
 
 const emptyProduct = {
   name: "",
@@ -128,6 +140,31 @@ export default function AdminPanel({ onBack }) {
   const [filterSaving, setFilterSaving] = useState(false);
   const [filterForm, setFilterForm] = useState({ name: "", image: "" });
   const [filterPreview, setFilterPreview] = useState("");
+
+  // Product categories are driven by the homepage filters.
+  // Existing/legacy categories are kept so old products remain editable.
+  const productCategories = useMemo(() => {
+    const values = [
+      ...filters
+        .slice()
+        .sort((a, b) => Number(a?.order ?? 0) - Number(b?.order ?? 0))
+        .map((filter) => normalizeCategoryName(filter?.name)),
+      ...LEGACY_CATEGORIES,
+      ...products.map((product) => normalizeCategoryName(product?.category)),
+      normalizeCategoryName(form.category),
+    ].filter(Boolean);
+
+    const seen = new Set();
+
+    return values.filter((category) => {
+      const key = category.toLowerCase();
+
+      if (seen.has(key)) return false;
+
+      seen.add(key);
+      return true;
+    });
+  }, [filters, products, form.category]);
 
 
   // =========================
@@ -313,7 +350,19 @@ export default function AdminPanel({ onBack }) {
       const response = await fetch(FILTERS_API_URL, { cache: "no-store" });
       if (!response.ok) throw new Error(`Could not load filters (${response.status})`);
       const data = await response.json();
-      setFilters(Array.isArray(data) ? data : Array.isArray(data.filters) ? data.filters : []);
+
+      const fetchedFilters = Array.isArray(data)
+        ? data
+        : Array.isArray(data.filters)
+        ? data.filters
+        : [];
+
+      fetchedFilters.sort(
+        (a, b) =>
+          Number(a?.order ?? 0) - Number(b?.order ?? 0)
+      );
+
+      setFilters(fetchedFilters);
     } catch (error) {
       console.error("Load filters error:", error);
       setFilters([]);
@@ -365,11 +414,47 @@ export default function AdminPanel({ onBack }) {
     if (!filterForm.image) { showMessage("Please upload a filter image.", "error"); return; }
     try {
       setFilterSaving(true);
-      const response = await fetch(filterEditingId ? `${FILTERS_API_URL}/${filterEditingId}` : FILTERS_API_URL, {
-        method: filterEditingId ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: filterForm.name.trim(), image: filterForm.image }),
-      });
+      const cleanName = normalizeCategoryName(filterForm.name);
+
+      const duplicate = filters.find(
+        (filter) =>
+          String(filter?._id) !== String(filterEditingId) &&
+          normalizeCategoryName(filter?.name).toLowerCase() ===
+            cleanName.toLowerCase()
+      );
+
+      if (duplicate) {
+        throw new Error("A filter with this name already exists.");
+      }
+
+      const existingFilter = filters.find(
+        (filter) =>
+          String(filter?._id) === String(filterEditingId)
+      );
+
+      const nextOrder =
+        existingFilter?.order ??
+        filters.reduce(
+          (highest, filter) =>
+            Math.max(highest, Number(filter?.order ?? 0)),
+          -1
+        ) + 1;
+
+      const response = await fetch(
+        filterEditingId
+          ? `${FILTERS_API_URL}/${filterEditingId}`
+          : FILTERS_API_URL,
+        {
+          method: filterEditingId ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: cleanName,
+            image: filterForm.image,
+            order: Number(nextOrder),
+            active: existingFilter?.active ?? true,
+          }),
+        }
+      );
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Could not save filter");
       showMessage(filterEditingId ? "Homepage filter updated successfully!" : "Homepage filter added successfully!");
@@ -492,9 +577,13 @@ export default function AdminPanel({ onBack }) {
     );
   };
 
+  const getDefaultCategory = () =>
+    productCategories[0] || LEGACY_CATEGORIES[0] || "Kurtis";
+
   const resetForm = () => {
     setForm({
       ...emptyProduct,
+      category: getDefaultCategory(),
     });
 
     setEditingId(null);
@@ -629,7 +718,9 @@ export default function AdminPanel({ onBack }) {
       description:
         form.description.trim(),
 
-      category: form.category,
+      category:
+        normalizeCategoryName(form.category) ||
+        getDefaultCategory(),
 
       price: Number(form.price),
 
@@ -659,7 +750,7 @@ export default function AdminPanel({ onBack }) {
     try {
       const url = editingId
         ? `${PRODUCTS_API_URL}/${editingId}`
-        : PRODUCTS_API_URL;
+        : `${PRODUCTS_API_URL}/add`;
 
       const response = await fetch(url, {
         method: editingId
@@ -676,13 +767,18 @@ export default function AdminPanel({ onBack }) {
         ),
       });
 
-      const data =
-        await response.json();
+      let data = {};
+
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
 
       if (!response.ok) {
         throw new Error(
           data.message ||
-            "Could not save product"
+            `Could not save product (${response.status})`
         );
       }
 
@@ -2346,26 +2442,20 @@ export default function AdminPanel({ onBack }) {
                     value={form.category}
                     onChange={handleChange}
                   >
-                    <option>
-                      Kurtis
-                    </option>
-
-                    <option>
-                      Suits
-                    </option>
-
-                    <option>
-                      Sets
-                    </option>
-
-                    <option>
-                      Co-ords
-                    </option>
-
-                    <option>
-                      Dresses
-                    </option>
+                    {productCategories.map((categoryName) => (
+                      <option
+                        key={categoryName}
+                        value={categoryName}
+                      >
+                        {categoryName}
+                      </option>
+                    ))}
                   </select>
+
+                  <small className="form-field-hint">
+                    Categories come from your homepage filters. Existing
+                    product categories are kept so older products remain editable.
+                  </small>
 
                 </div>
 

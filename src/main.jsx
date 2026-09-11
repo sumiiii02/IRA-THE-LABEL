@@ -1300,7 +1300,6 @@ function Home({
         <div className="product-grid">
 
           {products
-            .slice(0, 4)
             .map((product) => (
               <ProductCard
                 key={getProductId(product)}
@@ -1323,7 +1322,6 @@ function Home({
 // ========================================================
 // SHOP
 // ========================================================
-
 function Shop({
   products,
   category,
@@ -1338,8 +1336,8 @@ function Shop({
   return (
     <main className="shop-page">
 
+      {/* SHOP HEADER */}
       <div className="shop-heading">
-
         <p className="eyebrow">
           IRA THE LABEL
         </p>
@@ -1352,90 +1350,100 @@ function Shop({
           Everyday pieces,
           designed to be lived in.
         </p>
-
       </div>
 
-      <div className="shop-tools">
 
-<div className="chips">
+      {/* CATEGORY TABS */}
+      <div className="shop-collection-tabs">
 
-  <button
-    type="button"
-    className={category === "All" ? "active" : ""}
-    onClick={() => setCategory("All")}
-  >
-    <span className="dynamic-filter-circle filter-all-circle">
-      ALL
-    </span>
-
-    <span className="dynamic-filter-name">
-      All
-    </span>
-  </button>
-
-
-  {homepageFilters.map((filter) => (
-
-    <button
-      type="button"
-      className={
-        category === filter.name
-          ? "active"
-          : ""
-      }
-      onClick={() =>
-        setCategory(filter.name)
-      }
-      key={
-        filter._id ||
-        filter.id ||
-        filter.name
-      }
-    >
-
-      <span className="dynamic-filter-circle">
-
-        {filter.image ? (
-
-          <img
-            src={getFilterImage(filter.image)}
-            alt={filter.name}
-            loading="lazy"
-          />
-
-        ) : (
-
-          <span className="filter-image-fallback">
-            IRA
-          </span>
-
-        )}
-
-      </span>
-
-      <span className="dynamic-filter-name">
-        {filter.name}
-      </span>
-
-    </button>
-
-  ))}
-
-</div>
-
-
-        <button className="filter">
-
-          <SlidersHorizontal size={16} />
-
-          Filters
-
-          <ChevronDown size={15} />
-
+        <button
+          type="button"
+          className={
+            category === "All"
+              ? "active"
+              : ""
+          }
+          onClick={() =>
+            setCategory("All")
+          }
+        >
+          All
         </button>
 
+        {homepageFilters.map((filter) => (
+          <button
+            type="button"
+            key={
+              filter._id ||
+              filter.id ||
+              filter.name
+            }
+            className={
+              category === filter.name
+                ? "active"
+                : ""
+            }
+            onClick={() =>
+              setCategory(filter.name)
+            }
+          >
+            {filter.name}
+          </button>
+        ))}
+
       </div>
 
+
+      {/* CIRCULAR COLLECTION GRID */}
+      <div className="shop-collection-grid">
+
+        {homepageFilters.map((filter) => (
+          <button
+            type="button"
+            key={
+              filter._id ||
+              filter.id ||
+              filter.name
+            }
+            className="shop-collection-card"
+            onClick={() =>
+              setCategory(filter.name)
+            }
+          >
+
+            <div
+              className={
+                category === filter.name
+                  ? "shop-collection-circle active"
+                  : "shop-collection-circle"
+              }
+            >
+
+              {filter.image ? (
+                <img
+                  src={getFilterImage(filter.image)}
+                  alt={filter.name}
+                  loading="lazy"
+                />
+              ) : (
+                <span>
+                  IRA
+                </span>
+              )}
+
+            </div>
+
+            <span className="shop-collection-name">
+              {filter.name}
+            </span>
+
+          </button>
+        ))}
+
+      </div>
+
+
+      {/* PRODUCTS */}
       {loading ? (
         <p
           style={{
