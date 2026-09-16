@@ -40,6 +40,10 @@ const ORDERS_API_URL =
 
 const FILTERS_API_URL =
   "https://ira-the-label.onrender.com/api/filters";
+
+  const ADMIN_API_URL =
+  "https://ira-the-label.onrender.com/api/admin";
+
 const PAYMENT_METHODS = ["COD", "UPI", "CARD"];
 
 const LEGACY_CATEGORIES = [
@@ -91,6 +95,116 @@ const normalizePaymentMethods = (methods) => {
 };
 
 export default function AdminPanel({ onBack }) {
+  const [adminAuthenticated, setAdminAuthenticated] = useState(false);
+const [checkingAdminAuth, setCheckingAdminAuth] = useState(true);
+
+const [loginForm, setLoginForm] = useState({
+  email: "",
+  password: "",
+  otp: "",
+});
+
+const [loginLoading, setLoginLoading] = useState(false);
+const [loginError, setLoginError] = useState("");
+  // =========================
+  // ADMIN AUTHENTICATION
+  // =========================
+
+  const checkAdminSession = async () => {
+    try {
+      const response = await fetch(`${ADMIN_API_URL}/me`, {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+      });
+
+      if (response.ok) {
+        setAdminAuthenticated(true);
+        return true;
+      }
+
+      setAdminAuthenticated(false);
+      return false;
+    } catch (error) {
+      console.error("Admin session check error:", error);
+      setAdminAuthenticated(false);
+      return false;
+    } finally {
+      setCheckingAdminAuth(false);
+    }
+  };
+
+  const handleAdminLogin = async (event) => {
+    event.preventDefault();
+
+    setLoginError("");
+
+    const email = loginForm.email.trim();
+    const password = loginForm.password;
+    const otp = loginForm.otp.trim();
+
+    if (!email || !password || !otp) {
+      setLoginError(
+        "Please enter your email, password and 6-digit authenticator code."
+      );
+      return;
+    }
+
+    if (!/^\d{6}$/.test(otp)) {
+      setLoginError("Authenticator code must be exactly 6 digits.");
+      return;
+    }
+
+    try {
+      setLoginLoading(true);
+
+      const response = await fetch(`${ADMIN_API_URL}/login`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          otp,
+        }),
+      });
+
+      let data = {};
+
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Invalid admin login credentials."
+        );
+      }
+
+      setAdminAuthenticated(true);
+
+      setLoginForm({
+        email: "",
+        password: "",
+        otp: "",
+      });
+
+      await loadDashboard();
+    } catch (error) {
+      console.error("Admin login error:", error);
+
+      setAdminAuthenticated(false);
+      setLoginError(
+        error.message || "Could not log in. Please try again."
+      );
+    } finally {
+      setLoginLoading(false);
+    }
+  };
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
 
@@ -494,10 +608,9 @@ export default function AdminPanel({ onBack }) {
     ]);
   };
 
-  useEffect(() => {
-    loadDashboard();
-  }, []);
-
+ useEffect(() => {
+  checkAdminSession();
+}, []);
   // =========================
   // FORM HANDLERS
   // =========================
@@ -1314,6 +1427,165 @@ export default function AdminPanel({ onBack }) {
       ),
     0
   );
+  // =========================
+  // ADMIN LOGIN SCREEN
+  // =========================
+
+  if (checkingAdminAuth) {
+    return (
+      <div className="admin-login-page">
+        <div className="admin-login-card">
+          <div className="admin-login-logo">IRA</div>
+
+          <div className="admin-login-loading">
+            <Loader2 className="loading-spinner" size={22} />
+            <span>Checking secure session...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!adminAuthenticated) {
+    return (
+      <div className="admin-login-page">
+        <div className="admin-login-card">
+
+          <div className="admin-login-brand">
+            <div className="admin-login-logo">IRA</div>
+
+            <span>IRA THE LABEL</span>
+            <small>STORE MANAGEMENT</small>
+          </div>
+
+          <div className="admin-login-heading">
+            <span>SECURE ACCESS</span>
+            <h1>Admin Login</h1>
+            <p>
+              Sign in to manage your products, orders and
+              homepage.
+            </p>
+          </div>
+
+          {loginError && (
+            <div className="admin-login-error">
+              <AlertCircle size={17} />
+              <span>{loginError}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleAdminLogin} className="admin-login-form">
+
+            <div className="admin-login-field">
+              <label htmlFor="admin-email">
+                Admin Email
+              </label>
+
+              <input
+                id="admin-email"
+                type="email"
+                autoComplete="username"
+                value={loginForm.email}
+                onChange={(event) =>
+                  setLoginForm((current) => ({
+                    ...current,
+                    email: event.target.value,
+                  }))
+                }
+                placeholder="Enter admin email"
+                disabled={loginLoading}
+              />
+            </div>
+
+            <div className="admin-login-field">
+              <label htmlFor="admin-password">
+                Password
+              </label>
+
+              <input
+                id="admin-password"
+                type="password"
+                autoComplete="current-password"
+                value={loginForm.password}
+                onChange={(event) =>
+                  setLoginForm((current) => ({
+                    ...current,
+                    password: event.target.value,
+                  }))
+                }
+                placeholder="Enter admin password"
+                disabled={loginLoading}
+              />
+            </div>
+
+            <div className="admin-login-field">
+              <label htmlFor="admin-otp">
+                Authenticator Code
+              </label>
+
+              <input
+                id="admin-otp"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                value={loginForm.otp}
+                onChange={(event) =>
+                  setLoginForm((current) => ({
+                    ...current,
+                    otp: event.target.value
+                      .replace(/\D/g, "")
+                      .slice(0, 6),
+                  }))
+                }
+                placeholder="6-digit code"
+                disabled={loginLoading}
+              />
+
+              <small>
+                Open Google Authenticator and enter the
+                current IRA THE LABEL code.
+              </small>
+            </div>
+
+            <button
+              type="submit"
+              className="admin-login-button"
+              disabled={loginLoading}
+            >
+              {loginLoading ? (
+                <>
+                  <Loader2
+                    className="loading-spinner"
+                    size={18}
+                  />
+                  Signing in...
+                </>
+              ) : (
+                "Sign In Securely"
+              )}
+            </button>
+
+          </form>
+
+          <button
+            type="button"
+            className="admin-login-back"
+            onClick={onBack}
+            disabled={loginLoading}
+          >
+            <ArrowLeft size={16} />
+            Back to Store
+          </button>
+
+          <div className="admin-login-security">
+            🔒 Protected with password + two-factor authentication
+          </div>
+
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-page">

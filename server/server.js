@@ -1,6 +1,12 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const session = require("express-session");
+const MongoStore = require("connect-mongo").default;
+const bcrypt = require("bcryptjs");
+const { authenticator } = require("@otplib/v12-adapter");
 require("dotenv").config();
 
 const app = express();
@@ -16,7 +22,34 @@ const MONGO_URI = process.env.MONGO_URI;
 // MIDDLEWARE
 // ========================================
 
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_ORIGIN,
+    credentials: true,
+  })
+);
+app.set("trust proxy", 1);
+
+app.use(helmet());
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI,
+      collectionName: "admin_sessions",
+      ttl: 60 * 60 * 4,
+    }),
+    cookie: {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 1000 * 60 * 60 * 4,
+    },
+  })
+);
 
 app.use(
   express.json({
@@ -288,6 +321,171 @@ const Order = mongoose.model(
   "Order",
   orderSchema
 );
+// ========================================
+// ADMIN LOGIN RATE LIMITER
+// ========================================
+
+const adminLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // maximum 5 login attempts
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many login attempts. Please try again later.",
+  },
+});
+// ========================================
+// ADMIN AUTHENTICATION MIDDLEWARE
+// ========================================
+
+function requireAdmin(req, res, next) {
+  if (req.session && req.session.isAdmin === true) {
+    return next();
+  }
+
+  return res.status(401).json({
+    success: false,
+    message: "Admin authentication required",
+  });
+}
+// ========================================
+// ADMIN LOGIN
+// ========================================
+
+app.post("/api/admin/login", adminLoginLimiter, async (req, res) => {
+  try {
+    const { email, password, otp } = req.body;
+
+    if (!email || !password || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email, password and authenticator code are required",
+      });
+    }
+app.get("/api/admin/me", (req, res) => {
+  if (req.session && req.session.isAdmin === true) {
+    return res.status(200).json({
+      success: true,
+      authenticated: true,
+      email: req.session.adminEmail || "",
+    });
+  }
+
+  return res.status(401).json({
+    success: false,
+    authenticated: false,
+  });
+});
+app.post("/api/admin/logout", (req, res) => {
+  req.session.destroy((error) => {
+    if (error) {
+      console.error("ADMIN LOGOUT ERROR:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Could not log out",
+      });
+    }
+
+    res.clearCookie("connect.sid", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin logged out successfully",
+    });
+  });
+});
+    // Check admin email
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (normalizedEmail !== ADMIN_EMAIL.trim().toLowerCase()) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid admin credentials",
+      });
+    }
+
+    // Check password
+    const passwordValid = await bcrypt.compare(
+      password,
+      ADMIN_PASSWORD_HASH
+    );
+
+    if (!passwordValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid admin credentials",
+      });
+    }
+
+    // Check 2FA
+    const totpSecret = process.env.ADMIN_TOTP_SECRET;
+
+    if (!totpSecret) {
+      console.error("ADMIN_TOTP_SECRET is missing");
+
+      return res.status(500).json({
+        success: false,
+        message: "Admin authentication is not configured",
+      });
+    }
+
+    const otpValid = authenticator.verify({
+      token: String(otp).trim(),
+      secret: totpSecret,
+    });
+
+    if (!otpValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid authenticator code",
+      });
+    }
+
+    // Prevent session fixation by creating a fresh session ID
+    req.session.regenerate((error) => {
+      if (error) {
+        console.error("SESSION REGENERATION ERROR:", error);
+
+        return res.status(500).json({
+          success: false,
+          message: "Could not create secure admin session",
+        });
+      }
+
+      req.session.isAdmin = true;
+      req.session.adminEmail = normalizedEmail;
+
+      req.session.save((saveError) => {
+        if (saveError) {
+          console.error("SESSION SAVE ERROR:", saveError);
+
+          return res.status(500).json({
+            success: false,
+            message: "Could not save admin session",
+          });
+        }
+
+        return res.status(200).json({
+          success: true,
+          message: "Admin login successful",
+        });
+      });
+    });
+  } catch (error) {
+    console.error("ADMIN LOGIN ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Could not complete admin login",
+    });
+  }
+});
 
 // ========================================
 // HOME / TEST
