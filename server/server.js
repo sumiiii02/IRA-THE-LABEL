@@ -21,10 +21,20 @@ const MONGO_URI = process.env.MONGO_URI;
 // ========================================
 // MIDDLEWARE
 // ========================================
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://sumiiii02.github.io",
+];
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_ORIGIN || "http://localhost:5173",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
