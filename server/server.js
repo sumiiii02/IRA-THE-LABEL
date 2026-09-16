@@ -24,7 +24,7 @@ const MONGO_URI = process.env.MONGO_URI;
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_ORIGIN,
+    origin: process.env.FRONTEND_ORIGIN || "http://localhost:5173",
     credentials: true,
   })
 );
@@ -349,6 +349,44 @@ function requireAdmin(req, res, next) {
     message: "Admin authentication required",
   });
 }
+// ========================================
+// CHECK ADMIN SESSION
+// ========================================
+
+app.get("/api/admin/me", (req, res) => {
+  if (req.session && req.session.isAdmin === true) {
+    return res.status(200).json({
+      success: true,
+      authenticated: true,
+      adminEmail: req.session.adminEmail || "",
+    });
+  }
+
+  return res.status(401).json({
+    success: false,
+    authenticated: false,
+    message: "Not authenticated",
+  });
+});
+// ========================================
+// CHECK ADMIN SESSION
+// ========================================
+
+app.get("/api/admin/me", (req, res) => {
+  if (req.session && req.session.isAdmin === true) {
+    return res.status(200).json({
+      success: true,
+      authenticated: true,
+      adminEmail: req.session.adminEmail || "",
+    });
+  }
+
+  return res.status(401).json({
+    success: false,
+    authenticated: false,
+    message: "Not authenticated",
+  });
+});
 // ========================================
 // ADMIN LOGIN
 // ========================================
