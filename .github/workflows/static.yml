@@ -34,6 +34,9 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          VITE_RAZORPAY_KEY_ID: ${{ secrets.VITE_RAZORPAY_KEY_ID }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

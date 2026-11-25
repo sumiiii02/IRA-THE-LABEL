@@ -16,8 +16,27 @@ import {
 // ======================================================
 
 const API_URL =
+  import.meta.env.VITE_API_URL ||
   "https://ira-the-label.onrender.com";
+  const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+
+    const script = document.createElement("script");
+
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+
+    document.body.appendChild(script);
+  });
+};
 // ======================================================
 // HELPERS
 // ======================================================
@@ -326,6 +345,109 @@ function Checkout({
   // PLACE ORDER
   // ======================================================
 
+ const startRazorpayPayment = async (orderData) => {
+  try {
+    const scriptLoaded = await loadRazorpayScript();
+
+    if (!scriptLoaded) {
+      throw new Error(
+        "Razorpay could not be loaded. Please check your internet connection and try again."
+      );
+    }
+
+    if (!RAZORPAY_KEY_ID) {
+      throw new Error(
+        "Razorpay Key ID is missing. Please check your frontend .env file."
+      );
+    }
+
+    // Create Razorpay order on the backend
+    const response = await fetch(
+      `${API_URL}/api/payments/create-order`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: total,
+          currency: "INR",
+        }),
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result?.success || !result?.order) {
+      throw new Error(
+        result?.message ||
+          "Unable to create Razorpay payment order."
+      );
+    }
+
+    const razorpayOrder = result.order;
+
+    return new Promise((resolve, reject) => {
+      const options = {
+        key: RAZORPAY_KEY_ID,
+
+        amount: razorpayOrder.amount,
+
+        currency: razorpayOrder.currency,
+
+        name: "IRA THE LABEL",
+
+        description: "Order payment",
+
+        order_id: razorpayOrder.id,
+
+        prefill: {
+          name: `${orderData.customer.firstName} ${orderData.customer.lastName}`,
+          email: orderData.customer.email,
+          contact: orderData.customer.phone,
+        },
+
+        notes: {
+          customerId: customerId,
+        },
+
+        theme: {
+          color: "#111111",
+        },
+
+        handler: function (paymentResponse) {
+          resolve(paymentResponse);
+        },
+
+        modal: {
+          ondismiss: function () {
+            reject(
+              new Error(
+                "Payment was cancelled. Your order has not been placed."
+              )
+            );
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+
+      razorpay.on("payment.failed", function (response) {
+        reject(
+          new Error(
+            response?.error?.description ||
+              "Razorpay payment failed."
+          )
+        );
+      });
+
+      razorpay.open();
+    });
+  } catch (error) {
+    console.error("RAZORPAY PAYMENT ERROR:", error);
+    throw error;
+  }
+};
   const placeOrder = async () => {
     setError("");
 
@@ -432,15 +554,57 @@ function Checkout({
           }
         ),
 
-        paymentMethod:
-          PAYMENT_METHODS[paymentMethod]?.label ||
-          paymentMethod,
+        paymentMethod,
 
         totalAmount: total,
 
         orderStatus: "Pending",
       };
+      // Online payment: Razorpay
+let razorpayPayment = null;
 
+if (paymentMethod === "UPI" || paymentMethod === "CARD") {
+  razorpayPayment = await startRazorpayPayment(orderData);
+
+  orderData.razorpayOrderId =
+    razorpayPayment?.razorpay_order_id || "";
+
+  orderData.razorpayPaymentId =
+    razorpayPayment?.razorpay_payment_id || "";
+
+  orderData.razorpaySignature =
+    razorpayPayment?.razorpay_signature || "";
+}
+if (paymentMethod === "UPI" || paymentMethod === "CARD") {
+  const verifyResponse = await fetch(
+    `${API_URL}/api/payments/verify`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        razorpay_order_id:
+          razorpayPayment?.razorpay_order_id,
+
+        razorpay_payment_id:
+          razorpayPayment?.razorpay_payment_id,
+
+        razorpay_signature:
+          razorpayPayment?.razorpay_signature,
+      }),
+    }
+  );
+
+  const verifyData = await verifyResponse.json();
+
+  if (!verifyResponse.ok || !verifyData.success) {
+    throw new Error(
+      verifyData.message ||
+        "Payment verification failed"
+    );
+  }
+}
       console.log(
         "Customer ID:",
         customerId

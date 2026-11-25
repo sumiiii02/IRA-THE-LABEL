@@ -6,7 +6,10 @@ const rateLimit = require("express-rate-limit");
 const session = require("express-session");
 const MongoStore = require("connect-mongo").default;
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 const { authenticator } = require("@otplib/v12-adapter");
+const Razorpay = require("razorpay");
+
 require("dotenv").config();
 
 const app = express();
@@ -20,17 +23,24 @@ const MONGO_URI = process.env.MONGO_URI;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH;
 
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
 // ========================================
 // MIDDLEWARE
 // ========================================
+
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:5174",
   "https://sumiiii02.github.io",
-];
+].filter(Boolean);
 
 app.use(
   cors({
-    origin: function (origin, callback) {
+    origin: (origin, callback) => {
       if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
@@ -40,6 +50,7 @@ app.use(
     credentials: true,
   })
 );
+
 app.set("trust proxy", 1);
 
 app.use(helmet());
@@ -142,10 +153,7 @@ const productSchema = new mongoose.Schema(
   }
 );
 
-const Product = mongoose.model(
-  "Product",
-  productSchema
-);
+const Product = mongoose.model("Product", productSchema);
 
 // ========================================
 // FILTER / CATEGORY SCHEMA
@@ -179,10 +187,7 @@ const filterSchema = new mongoose.Schema(
   }
 );
 
-const Filter = mongoose.model(
-  "Filter",
-  filterSchema
-);
+const Filter = mongoose.model("Filter", filterSchema);
 
 // ========================================
 // ORDER SCHEMA
@@ -329,17 +334,15 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-const Order = mongoose.model(
-  "Order",
-  orderSchema
-);
+const Order = mongoose.model("Order", orderSchema);
+
 // ========================================
 // ADMIN LOGIN RATE LIMITER
 // ========================================
 
 const adminLoginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // maximum 5 login attempts
+  windowMs: 15 * 60 * 1000,
+  max: 5,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -347,8 +350,9 @@ const adminLoginLimiter = rateLimit({
     message: "Too many login attempts. Please try again later.",
   },
 });
+
 // ========================================
-// ADMIN AUTHENTICATION MIDDLEWARE
+// ADMIN AUTHENTICATION
 // ========================================
 
 function requireAdmin(req, res, next) {
@@ -361,6 +365,7 @@ function requireAdmin(req, res, next) {
     message: "Admin authentication required",
   });
 }
+
 // ========================================
 // CHECK ADMIN SESSION
 // ========================================
@@ -380,25 +385,7 @@ app.get("/api/admin/me", (req, res) => {
     message: "Not authenticated",
   });
 });
-// ========================================
-// CHECK ADMIN SESSION
-// ========================================
 
-app.get("/api/admin/me", (req, res) => {
-  if (req.session && req.session.isAdmin === true) {
-    return res.status(200).json({
-      success: true,
-      authenticated: true,
-      adminEmail: req.session.adminEmail || "",
-    });
-  }
-
-  return res.status(401).json({
-    success: false,
-    authenticated: false,
-    message: "Not authenticated",
-  });
-});
 // ========================================
 // ADMIN LOGIN
 // ========================================
@@ -413,56 +400,30 @@ app.post("/api/admin/login", adminLoginLimiter, async (req, res) => {
         message: "Email, password and authenticator code are required",
       });
     }
-app.get("/api/admin/me", (req, res) => {
-  if (req.session && req.session.isAdmin === true) {
-    return res.status(200).json({
-      success: true,
-      authenticated: true,
-      email: req.session.adminEmail || "",
-    });
-  }
 
-  return res.status(401).json({
-    success: false,
-    authenticated: false,
-  });
-});
-app.post("/api/admin/logout", (req, res) => {
-  req.session.destroy((error) => {
-    if (error) {
-      console.error("ADMIN LOGOUT ERROR:", error);
+    const normalizedEmail = String(email).trim().toLowerCase();
 
-      return res.status(500).json({
-        success: false,
-        message: "Could not log out",
-      });
-    }
-
-    res.clearCookie("connect.sid", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: "Admin logged out successfully",
-    });
-  });
-});
-    // Check admin email
-    const normalizedEmail = email.trim().toLowerCase();
-
-    if (normalizedEmail !== ADMIN_EMAIL.trim().toLowerCase()) {
+    if (
+      !ADMIN_EMAIL ||
+      normalizedEmail !== ADMIN_EMAIL.trim().toLowerCase()
+    ) {
       return res.status(401).json({
         success: false,
         message: "Invalid admin credentials",
       });
     }
 
-    // Check password
+    if (!ADMIN_PASSWORD_HASH) {
+      console.error("ADMIN_PASSWORD_HASH is missing");
+
+      return res.status(500).json({
+        success: false,
+        message: "Admin authentication is not configured",
+      });
+    }
+
     const passwordValid = await bcrypt.compare(
-      password,
+      String(password),
       ADMIN_PASSWORD_HASH
     );
 
@@ -473,7 +434,6 @@ app.post("/api/admin/logout", (req, res) => {
       });
     }
 
-    // Check 2FA
     const totpSecret = process.env.ADMIN_TOTP_SECRET;
 
     if (!totpSecret) {
@@ -497,7 +457,6 @@ app.post("/api/admin/logout", (req, res) => {
       });
     }
 
-    // Prevent session fixation by creating a fresh session ID
     req.session.regenerate((error) => {
       if (error) {
         console.error("SESSION REGENERATION ERROR:", error);
@@ -538,6 +497,34 @@ app.post("/api/admin/logout", (req, res) => {
 });
 
 // ========================================
+// ADMIN LOGOUT
+// ========================================
+
+app.post("/api/admin/logout", (req, res) => {
+  req.session.destroy((error) => {
+    if (error) {
+      console.error("ADMIN LOGOUT ERROR:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Could not log out",
+      });
+    }
+
+    res.clearCookie("connect.sid", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin logged out successfully",
+    });
+  });
+});
+
+// ========================================
 // HOME / TEST
 // ========================================
 
@@ -552,9 +539,7 @@ app.get("/", (req, res) => {
 // FILTER ROUTES
 // ========================================
 
-// ========================================
-// GET ALL FILTERS
-// ========================================
+// GET ACTIVE FILTERS
 
 app.get("/api/filters", async (req, res) => {
   try {
@@ -567,10 +552,7 @@ app.get("/api/filters", async (req, res) => {
 
     res.status(200).json(filters);
   } catch (error) {
-    console.error(
-      "GET FILTERS ERROR:",
-      error
-    );
+    console.error("GET FILTERS ERROR:", error);
 
     res.status(500).json({
       success: false,
@@ -579,39 +561,29 @@ app.get("/api/filters", async (req, res) => {
   }
 });
 
-// ========================================
 // GET ALL FILTERS FOR ADMIN
-// ========================================
 
-app.get(
-  "/api/admin/filters",
-  async (req, res) => {
-    try {
-      const filters = await Filter.find().sort({
-        order: 1,
-        createdAt: 1,
-      });
+app.get("/api/admin/filters", requireAdmin, async (req, res) => {
+  try {
+    const filters = await Filter.find().sort({
+      order: 1,
+      createdAt: 1,
+    });
 
-      res.status(200).json(filters);
-    } catch (error) {
-      console.error(
-        "GET ADMIN FILTERS ERROR:",
-        error
-      );
+    res.status(200).json(filters);
+  } catch (error) {
+    console.error("GET ADMIN FILTERS ERROR:", error);
 
-      res.status(500).json({
-        success: false,
-        message: "Could not load filters",
-      });
-    }
+    res.status(500).json({
+      success: false,
+      message: "Could not load filters",
+    });
   }
-);
+});
 
-// ========================================
 // ADD FILTER
-// ========================================
 
-app.post("/api/filters", async (req, res) => {
+app.post("/api/filters", requireAdmin, async (req, res) => {
   try {
     const {
       name,
@@ -627,21 +599,19 @@ app.post("/api/filters", async (req, res) => {
       });
     }
 
-    const existingFilter =
-      await Filter.findOne({
-        name: {
-          $regex: new RegExp(
-            `^${name.trim()}$`,
-            "i"
-          ),
-        },
-      });
+    const existingFilter = await Filter.findOne({
+      name: {
+        $regex: new RegExp(
+          `^${name.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+          "i"
+        ),
+      },
+    });
 
     if (existingFilter) {
       return res.status(400).json({
         success: false,
-        message:
-          "A filter with this name already exists",
+        message: "A filter with this name already exists",
       });
     }
 
@@ -664,154 +634,125 @@ app.post("/api/filters", async (req, res) => {
       filter,
     });
   } catch (error) {
-    console.error(
-      "ADD FILTER ERROR:",
-      error
+    console.error("ADD FILTER ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message || "Could not add filter",
+    });
+  }
+});
+
+// UPDATE FILTER
+
+app.put("/api/filters/:id", requireAdmin, async (req, res) => {
+  try {
+    const {
+      name,
+      image,
+      order,
+      active,
+    } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Filter name is required",
+      });
+    }
+
+    const duplicate = await Filter.findOne({
+      name: {
+        $regex: new RegExp(
+          `^${name.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+          "i"
+        ),
+      },
+
+      _id: {
+        $ne: req.params.id,
+      },
+    });
+
+    if (duplicate) {
+      return res.status(400).json({
+        success: false,
+        message: "Another filter with this name already exists",
+      });
+    }
+
+    const filter = await Filter.findByIdAndUpdate(
+      req.params.id,
+      {
+        name: name.trim(),
+        image: image || "",
+        order:
+          order !== undefined
+            ? Number(order)
+            : 0,
+        active:
+          active !== undefined
+            ? Boolean(active)
+            : true,
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
     );
+
+    if (!filter) {
+      return res.status(404).json({
+        success: false,
+        message: "Filter not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Filter updated successfully",
+      filter,
+    });
+  } catch (error) {
+    console.error("UPDATE FILTER ERROR:", error);
 
     res.status(500).json({
       success: false,
       message:
         error.message ||
-        "Could not add filter",
+        "Could not update filter",
     });
   }
 });
 
-// ========================================
-// UPDATE FILTER
-// ========================================
+// DELETE FILTER
 
-app.put(
-  "/api/filters/:id",
-  async (req, res) => {
-    try {
-      const {
-        name,
-        image,
-        order,
-        active,
-      } = req.body;
+app.delete("/api/filters/:id", requireAdmin, async (req, res) => {
+  try {
+    const filter = await Filter.findByIdAndDelete(
+      req.params.id
+    );
 
-      if (!name || !name.trim()) {
-        return res.status(400).json({
-          success: false,
-          message:
-            "Filter name is required",
-        });
-      }
-
-      const duplicate =
-        await Filter.findOne({
-          name: {
-            $regex: new RegExp(
-              `^${name.trim()}$`,
-              "i"
-            ),
-          },
-
-          _id: {
-            $ne: req.params.id,
-          },
-        });
-
-      if (duplicate) {
-        return res.status(400).json({
-          success: false,
-          message:
-            "Another filter with this name already exists",
-        });
-      }
-
-      const filter =
-        await Filter.findByIdAndUpdate(
-          req.params.id,
-          {
-            name: name.trim(),
-            image: image || "",
-            order:
-              order !== undefined
-                ? Number(order)
-                : 0,
-            active:
-              active !== undefined
-                ? Boolean(active)
-                : true,
-          },
-          {
-            new: true,
-            runValidators: true,
-          }
-        );
-
-      if (!filter) {
-        return res.status(404).json({
-          success: false,
-          message: "Filter not found",
-        });
-      }
-
-      res.status(200).json({
-        success: true,
-        message:
-          "Filter updated successfully",
-        filter,
-      });
-    } catch (error) {
-      console.error(
-        "UPDATE FILTER ERROR:",
-        error
-      );
-
-      res.status(500).json({
+    if (!filter) {
+      return res.status(404).json({
         success: false,
-        message:
-          error.message ||
-          "Could not update filter",
+        message: "Filter not found",
       });
     }
+
+    res.status(200).json({
+      success: true,
+      message: "Filter deleted permanently",
+    });
+  } catch (error) {
+    console.error("DELETE FILTER ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Could not delete filter",
+    });
   }
-);
-
-// ========================================
-// DELETE FILTER PERMANENTLY
-// ========================================
-
-app.delete(
-  "/api/filters/:id",
-  async (req, res) => {
-    try {
-      const filter =
-        await Filter.findByIdAndDelete(
-          req.params.id
-        );
-
-      if (!filter) {
-        return res.status(404).json({
-          success: false,
-          message: "Filter not found",
-        });
-      }
-
-      res.status(200).json({
-        success: true,
-        message:
-          "Filter deleted permanently",
-      });
-    } catch (error) {
-      console.error(
-        "DELETE FILTER ERROR:",
-        error
-      );
-
-      res.status(500).json({
-        success: false,
-        message:
-          "Could not delete filter",
-      });
-    }
-  }
-);
+});
 
 // ========================================
 // PRODUCT ROUTES
@@ -821,64 +762,52 @@ app.delete(
 
 app.get("/api/products", async (req, res) => {
   try {
-    const products =
-      await Product.find().sort({
-        createdAt: -1,
-      });
+    const products = await Product.find().sort({
+      createdAt: -1,
+    });
 
     res.status(200).json(products);
   } catch (error) {
-    console.error(
-      "GET PRODUCTS ERROR:",
-      error
-    );
+    console.error("GET PRODUCTS ERROR:", error);
 
     res.status(500).json({
       success: false,
-      message:
-        "Could not load products",
+      message: "Could not load products",
     });
   }
 });
 
 // GET SINGLE PRODUCT
 
-app.get(
-  "/api/products/:id",
-  async (req, res) => {
-    try {
-      const product =
-        await Product.findById(
-          req.params.id
-        );
+app.get("/api/products/:id", async (req, res) => {
+  try {
+    const product = await Product.findById(
+      req.params.id
+    );
 
-      if (!product) {
-        return res.status(404).json({
-          success: false,
-          message: "Product not found",
-        });
-      }
-
-      res.status(200).json(product);
-    } catch (error) {
-      console.error(
-        "GET PRODUCT ERROR:",
-        error
-      );
-
-      res.status(500).json({
+    if (!product) {
+      return res.status(404).json({
         success: false,
-        message:
-          "Could not load product",
+        message: "Product not found",
       });
     }
+
+    res.status(200).json(product);
+  } catch (error) {
+    console.error("GET PRODUCT ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Could not load product",
+    });
   }
-);
+});
 
 // ADD PRODUCT
 
 app.post(
   "/api/products/add",
+  requireAdmin,
   async (req, res) => {
     try {
       const {
@@ -897,8 +826,7 @@ app.post(
       if (!name || !name.trim()) {
         return res.status(400).json({
           success: false,
-          message:
-            "Product name is required",
+          message: "Product name is required",
         });
       }
 
@@ -909,38 +837,25 @@ app.post(
       ) {
         return res.status(400).json({
           success: false,
-          message:
-            "Product price is required",
+          message: "Product price is required",
         });
       }
 
       if (Number(price) < 0) {
         return res.status(400).json({
           success: false,
-          message:
-            "Product price cannot be negative",
+          message: "Product price cannot be negative",
         });
       }
 
       const validPaymentMethods =
         Array.isArray(paymentMethods)
-          ? paymentMethods.filter(
-              (method) =>
-                [
-                  "COD",
-                  "UPI",
-                  "CARD",
-                ].includes(method)
+          ? paymentMethods.filter((method) =>
+              ["COD", "UPI", "CARD"].includes(method)
             )
-          : [
-              "COD",
-              "UPI",
-              "CARD",
-            ];
+          : ["COD", "UPI", "CARD"];
 
-      if (
-        validPaymentMethods.length === 0
-      ) {
+      if (validPaymentMethods.length === 0) {
         return res.status(400).json({
           success: false,
           message:
@@ -948,54 +863,26 @@ app.post(
         });
       }
 
-      const product =
-        await Product.create({
-          name: name.trim(),
-
-          description:
-            description || "",
-
-          category:
-            category || "Kurtis",
-
-          price: Number(price),
-
-          discount:
-            Number(discount) || 0,
-
-          stock:
-            Number(stock) || 0,
-
-          sizes:
-            Array.isArray(sizes)
-              ? sizes
-              : [],
-
-          colors:
-            Array.isArray(colors)
-              ? colors
-              : [],
-
-          images:
-            Array.isArray(images)
-              ? images
-              : [],
-
-          paymentMethods:
-            validPaymentMethods,
-        });
+      const product = await Product.create({
+        name: name.trim(),
+        description: description || "",
+        category: category || "Kurtis",
+        price: Number(price),
+        discount: Number(discount) || 0,
+        stock: Number(stock) || 0,
+        sizes: Array.isArray(sizes) ? sizes : [],
+        colors: Array.isArray(colors) ? colors : [],
+        images: Array.isArray(images) ? images : [],
+        paymentMethods: validPaymentMethods,
+      });
 
       res.status(201).json({
         success: true,
-        message:
-          "Product added successfully",
+        message: "Product added successfully",
         product,
       });
     } catch (error) {
-      console.error(
-        "ADD PRODUCT ERROR:",
-        error
-      );
+      console.error("ADD PRODUCT ERROR:", error);
 
       res.status(500).json({
         success: false,
@@ -1011,6 +898,7 @@ app.post(
 
 app.put(
   "/api/products/:id",
+  requireAdmin,
   async (req, res) => {
     try {
       const {
@@ -1029,8 +917,7 @@ app.put(
       if (!name || !name.trim()) {
         return res.status(400).json({
           success: false,
-          message:
-            "Product name is required",
+          message: "Product name is required",
         });
       }
 
@@ -1041,38 +928,25 @@ app.put(
       ) {
         return res.status(400).json({
           success: false,
-          message:
-            "Product price is required",
+          message: "Product price is required",
         });
       }
 
       if (Number(price) < 0) {
         return res.status(400).json({
           success: false,
-          message:
-            "Product price cannot be negative",
+          message: "Product price cannot be negative",
         });
       }
 
       const validPaymentMethods =
         Array.isArray(paymentMethods)
-          ? paymentMethods.filter(
-              (method) =>
-                [
-                  "COD",
-                  "UPI",
-                  "CARD",
-                ].includes(method)
+          ? paymentMethods.filter((method) =>
+              ["COD", "UPI", "CARD"].includes(method)
             )
-          : [
-              "COD",
-              "UPI",
-              "CARD",
-            ];
+          : ["COD", "UPI", "CARD"];
 
-      if (
-        validPaymentMethods.length === 0
-      ) {
+      if (validPaymentMethods.length === 0) {
         return res.status(400).json({
           success: false,
           message:
@@ -1085,36 +959,20 @@ app.put(
           req.params.id,
           {
             name: name.trim(),
-
-            description:
-              description || "",
-
-            category:
-              category || "Kurtis",
-
+            description: description || "",
+            category: category || "Kurtis",
             price: Number(price),
-
-            discount:
-              Number(discount) || 0,
-
-            stock:
-              Number(stock) || 0,
-
-            sizes:
-              Array.isArray(sizes)
-                ? sizes
-                : [],
-
-            colors:
-              Array.isArray(colors)
-                ? colors
-                : [],
-
-            images:
-              Array.isArray(images)
-                ? images
-                : [],
-
+            discount: Number(discount) || 0,
+            stock: Number(stock) || 0,
+            sizes: Array.isArray(sizes)
+              ? sizes
+              : [],
+            colors: Array.isArray(colors)
+              ? colors
+              : [],
+            images: Array.isArray(images)
+              ? images
+              : [],
             paymentMethods:
               validPaymentMethods,
           },
@@ -1133,15 +991,11 @@ app.put(
 
       res.status(200).json({
         success: true,
-        message:
-          "Product updated successfully",
+        message: "Product updated successfully",
         product,
       });
     } catch (error) {
-      console.error(
-        "UPDATE PRODUCT ERROR:",
-        error
-      );
+      console.error("UPDATE PRODUCT ERROR:", error);
 
       res.status(500).json({
         success: false,
@@ -1157,6 +1011,7 @@ app.put(
 
 app.delete(
   "/api/products/:id",
+  requireAdmin,
   async (req, res) => {
     try {
       const product =
@@ -1173,19 +1028,138 @@ app.delete(
 
       res.status(200).json({
         success: true,
-        message:
-          "Product deleted successfully",
+        message: "Product deleted successfully",
       });
     } catch (error) {
-      console.error(
-        "DELETE PRODUCT ERROR:",
-        error
-      );
+      console.error("DELETE PRODUCT ERROR:", error);
 
       res.status(500).json({
         success: false,
+        message: "Could not delete product",
+      });
+    }
+  }
+);
+
+// ========================================
+// RAZORPAY PAYMENT
+// ========================================
+
+// CREATE RAZORPAY ORDER
+
+app.post(
+  "/api/payments/create-order",
+  async (req, res) => {
+    try {
+      const {
+        amount,
+        currency = "INR",
+      } = req.body;
+
+      if (
+        !amount ||
+        Number(amount) <= 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "A valid payment amount is required",
+        });
+      }
+
+      const options = {
+        amount: Math.round(
+          Number(amount) * 100
+        ),
+        currency,
+        receipt: `IRA_${Date.now()}`,
+      };
+
+      const order =
+        await razorpay.orders.create(
+          options
+        );
+
+      return res.status(200).json({
+        success: true,
+        order,
+      });
+    } catch (error) {
+      console.error(
+        "RAZORPAY CREATE ORDER ERROR:",
+        error
+      );
+
+      return res.status(500).json({
+        success: false,
         message:
-          "Could not delete product",
+          "Could not create Razorpay payment order",
+      });
+    }
+  }
+);
+
+// VERIFY RAZORPAY PAYMENT
+
+app.post(
+  "/api/payments/verify",
+  async (req, res) => {
+    try {
+      const {
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+      } = req.body;
+
+      if (
+        !razorpay_order_id ||
+        !razorpay_payment_id ||
+        !razorpay_signature
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Payment verification details are incomplete",
+        });
+      }
+
+      const generatedSignature =
+        crypto
+          .createHmac(
+            "sha256",
+            process.env.RAZORPAY_KEY_SECRET
+          )
+          .update(
+            `${razorpay_order_id}|${razorpay_payment_id}`
+          )
+          .digest("hex");
+
+      if (
+        generatedSignature !==
+        razorpay_signature
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Payment verification failed",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "Payment verified successfully",
+      });
+    } catch (error) {
+      console.error(
+        "RAZORPAY PAYMENT VERIFICATION ERROR:",
+        error
+      );
+
+      return res.status(500).json({
+        success: false,
+        message:
+          "Could not verify Razorpay payment",
       });
     }
   }
@@ -1243,8 +1217,7 @@ app.post(
       ) {
         return res.status(400).json({
           success: false,
-          message:
-            "Your cart is empty",
+          message: "Your cart is empty",
         });
       }
 
@@ -1255,8 +1228,7 @@ app.post(
       ) {
         return res.status(400).json({
           success: false,
-          message:
-            "Invalid payment method",
+          message: "Invalid payment method",
         });
       }
 
@@ -1314,10 +1286,11 @@ app.post(
   }
 );
 
-// GET ALL ORDERS
+// GET ALL ORDERS FOR ADMIN
 
 app.get(
   "/api/orders",
+  requireAdmin,
   async (req, res) => {
     try {
       const orders =
@@ -1347,8 +1320,9 @@ app.get(
   "/api/orders/customer/:customerId",
   async (req, res) => {
     try {
-      const { customerId } =
-        req.params;
+      const {
+        customerId,
+      } = req.params;
 
       if (!customerId) {
         return res.status(400).json({
@@ -1381,10 +1355,11 @@ app.get(
   }
 );
 
-// GET SINGLE ORDER
+// GET SINGLE ORDER FOR ADMIN
 
 app.get(
   "/api/orders/:id",
+  requireAdmin,
   async (req, res) => {
     try {
       const order =
@@ -1422,8 +1397,9 @@ app.get(
 const updateOrderStatusHandler =
   async (req, res) => {
     try {
-      const { orderStatus } =
-        req.body;
+      const {
+        orderStatus,
+      } = req.body;
 
       const allowedStatuses = [
         "Pending",
@@ -1450,7 +1426,8 @@ const updateOrderStatusHandler =
       }
 
       if (
-        orderStatus === "Rejected"
+        orderStatus ===
+        "Rejected"
       ) {
         const deletedOrder =
           await Order.findByIdAndDelete(
@@ -1497,8 +1474,10 @@ const updateOrderStatusHandler =
 
       res.status(200).json({
         success: true,
-        message: `Order ${orderStatus.toLowerCase()} successfully`,
-        order: updatedOrder,
+        message:
+          `Order ${orderStatus.toLowerCase()} successfully`,
+        order:
+          updatedOrder,
       });
     } catch (error) {
       console.error(
@@ -1515,15 +1494,19 @@ const updateOrderStatusHandler =
     }
   };
 
-// STATUS ROUTES
+// PATCH STATUS
 
 app.patch(
   "/api/orders/:id/status",
+  requireAdmin,
   updateOrderStatusHandler
 );
 
+// PUT STATUS
+
 app.put(
   "/api/orders/:id/status",
+  requireAdmin,
   updateOrderStatusHandler
 );
 
@@ -1531,6 +1514,7 @@ app.put(
 
 app.delete(
   "/api/orders/:id",
+  requireAdmin,
   async (req, res) => {
     try {
       const order =
@@ -1635,7 +1619,9 @@ app.listen(PORT, () => {
     "IRA THE LABEL BACKEND RUNNING"
   );
 
-  console.log(`PORT: ${PORT}`);
+  console.log(
+    `PORT: ${PORT}`
+  );
 
   console.log(
     "=============================="
